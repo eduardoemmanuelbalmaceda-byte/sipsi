@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Profesional extends Model
 {
+    protected $table = 'profesionales';
+    
     protected $fillable = ['user_id', 'nombre', 'apellido', 'especialidad', 'rol'];
 
     public function user()

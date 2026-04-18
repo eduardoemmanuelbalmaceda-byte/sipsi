@@ -7,6 +7,7 @@
         <a href="{{ route('oficios.index') }}" class="btn btn-secondary">Volver</a>
     </div>
 </div>
+
 <div class="row">
     <div class="col-md-6">
         <div class="card mb-4">
@@ -38,10 +39,18 @@
         </div>
     </div>
 </div>
+
 <div class="row">
     <div class="col-md-6">
         <div class="card mb-4">
-            <div class="card-header"><strong>Turno</strong></div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Turno</strong>
+                @if(!$oficio->turno)
+                    <a href="{{ route('turnos.create', $oficio) }}" class="btn btn-sm btn-primary">+ Asignar turno</a>
+                @else
+                    <a href="{{ route('turnos.edit', $oficio->turno) }}" class="btn btn-sm btn-warning">Editar</a>
+                @endif
+            </div>
             <div class="card-body">
                 @if($oficio->turno)
                     <p><strong>Fecha:</strong> {{ $oficio->turno->fecha_turno }}</p>
@@ -56,12 +65,24 @@
     </div>
     <div class="col-md-6">
         <div class="card mb-4">
-            <div class="card-header"><strong>Informe</strong></div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Informe</strong>
+                @if(!$oficio->informe && $oficio->turno)
+                    <a href="{{ route('informes.create', $oficio) }}" class="btn btn-sm btn-primary">+ Cargar informe</a>
+                @elseif($oficio->informe)
+                    <a href="{{ route('informes.edit', $oficio->informe) }}" class="btn btn-sm btn-warning">Editar</a>
+                @endif
+            </div>
             <div class="card-body">
                 @if($oficio->informe)
                     <p><strong>Fecha:</strong> {{ $oficio->informe->fecha_informe }}</p>
                     <p><strong>Profesional:</strong> {{ $oficio->informe->profesional->apellido }}, {{ $oficio->informe->profesional->nombre }}</p>
                     <p><strong>Enviado al juzgado:</strong> {{ $oficio->informe->enviado_juzgado ? 'Sí' : 'No' }}</p>
+                    @if($oficio->informe->enviado_juzgado)
+                        <p><strong>Fecha de envío:</strong> {{ $oficio->informe->fecha_envio }}</p>
+                    @endif
+                @elseif(!$oficio->turno)
+                    <p class="text-muted">Primero asigná un turno.</p>
                 @else
                     <p class="text-muted">Sin informe cargado.</p>
                 @endif

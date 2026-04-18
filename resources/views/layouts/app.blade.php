@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISPSI - {{ $title ?? 'Sistema' }}</title>
+    <title>SIPSI - {{ $title ?? 'Sistema' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">SISPSI</a>
+        <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">SIPSI</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
@@ -22,6 +22,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('juzgados.index') }}">Juzgados</a>
                 </li>
+                <li class="nav-item">
+    <a class="nav-link" href="{{ route('profesionales.index') }}">Profesionales</a>
+</li>
             </ul>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
