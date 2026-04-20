@@ -1,39 +1,47 @@
 <x-guest-layout>
+
+    <div style="text-align:center;margin-bottom:1.5rem;">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:linear-gradient(135deg,#2ab8a0,#1a9e88);border-radius:50%;margin-bottom:0.85rem;box-shadow:0 4px 15px rgba(42,184,160,0.4);">
+            <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+        </div>
+        <h2 class="title-sipsi">NUEVA CONTRASEÑA</h2>
+        <p class="subtitle-sipsi">Sistema de Salud Mental — SIPSI</p>
+    </div>
+
     <form method="POST" action="{{ route('password.store') }}">
         @csrf
-
-        <!-- Password Reset Token -->
         <input type="hidden" name="token" value="{{ $request->route('token') }}">
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <div style="margin-bottom:1rem;">
+            <input id="email" type="email" name="email" value="{{ old('email', $request->email) }}"
+                required autofocus autocomplete="username"
+                placeholder="Correo electrónico"
+                class="sipsi-input" />
+            @error('email') <div class="error-msg">{{ $message }}</div> @enderror
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <div style="margin-bottom:1rem;">
+            <input id="password" type="password" name="password"
+                required autocomplete="new-password"
+                placeholder="Nueva contraseña"
+                class="sipsi-input" />
+            @error('password') <div class="error-msg">{{ $message }}</div> @enderror
         </div>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                                type="password"
-                                name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        <div style="margin-bottom:1.5rem;">
+            <input id="password_confirmation" type="password" name="password_confirmation"
+                required autocomplete="new-password"
+                placeholder="Confirmar nueva contraseña"
+                class="sipsi-input" />
+            @error('password_confirmation') <div class="error-msg">{{ $message }}</div> @enderror
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Reset Password') }}
-            </x-primary-button>
-        </div>
+        <button type="submit" class="btn-sipsi">
+            Restablecer contraseña
+        </button>
+
     </form>
+
 </x-guest-layout>
