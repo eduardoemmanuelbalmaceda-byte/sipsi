@@ -20,7 +20,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('oficios', OficioController::class);
     Route::resource('pacientes', PacienteController::class);
     Route::resource('juzgados', JuzgadoController::class);
-    Route::resource('profesionales', ProfesionalController::class);
+    Route::resource('profesionales', ProfesionalController::class)->parameters([
+        'profesionales' => 'profesional'
+    ]);
 
     Route::get('oficios/{oficio}/turno/create', [TurnoController::class, 'create'])->name('turnos.create');
     Route::post('turnos', [TurnoController::class, 'store'])->name('turnos.store');
