@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIPSI — {{ $title ?? 'Sistema' }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <title>SIPSI — <?php echo e($title ?? 'Sistema'); ?></title>
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
     <style>
         /* ══════════════════════════════════════
@@ -403,7 +403,7 @@
         [data-theme="dark"] .form-label        { color: var(--text-soft) !important; }
         [data-theme="dark"] strong             { color: var(--text) !important; }
     </style>
-    {{-- Aplicar tema antes de render para evitar flash --}}
+    
     <script>
         (function() {
             const t = localStorage.getItem('sipsi-theme') || 'light';
@@ -416,7 +416,7 @@
 <div class="watermark">SIPSI</div>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-{{-- ── Sidebar ── --}}
+
 <aside class="sidebar" id="sidebar">
 
     <div class="sidebar-logo">
@@ -429,7 +429,7 @@
             <div class="brand-name">SIPSI</div>
             <div class="brand-sub">Psiquiatría Hospitalaria</div>
         </div>
-        {{-- Toggle desktop --}}
+        
         <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" id="themeBtn">
             <svg id="iconSun" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
@@ -443,28 +443,28 @@
     <nav class="sidebar-nav">
         <div class="nav-label">Gestión clínica</div>
 
-        <a href="{{ route('oficios.index') }}" class="sidebar-link {{ request()->routeIs('oficios.*') ? 'active' : '' }}">
+        <a href="<?php echo e(route('oficios.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('oficios.*') ? 'active' : ''); ?>">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
             Oficios
         </a>
 
-        <a href="{{ route('pacientes.index') }}" class="sidebar-link {{ request()->routeIs('pacientes.*') ? 'active' : '' }}">
+        <a href="<?php echo e(route('pacientes.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('pacientes.*') ? 'active' : ''); ?>">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
             Pacientes
         </a>
 
-        <a href="{{ route('juzgados.index') }}" class="sidebar-link {{ request()->routeIs('juzgados.*') ? 'active' : '' }}">
+        <a href="<?php echo e(route('juzgados.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('juzgados.*') ? 'active' : ''); ?>">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
             </svg>
             Juzgados
         </a>
 
-        <a href="{{ route('profesionales.index') }}" class="sidebar-link {{ request()->routeIs('profesionales.*') ? 'active' : '' }}">
+        <a href="<?php echo e(route('profesionales.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('profesionales.*') ? 'active' : ''); ?>">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
@@ -473,7 +473,7 @@
 
         <div class="nav-label" style="margin-top:0.5rem;">Informes</div>
 
-        <a href="{{ route('oficios.index') }}" class="sidebar-link">
+        <a href="<?php echo e(route('oficios.index')); ?>" class="sidebar-link">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
@@ -483,14 +483,14 @@
 
     <div class="sidebar-footer">
         <div class="user-card">
-            <div class="user-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
+            <div class="user-avatar"><?php echo e(strtoupper(substr(auth()->user()->name, 0, 1))); ?></div>
             <div>
-                <div class="user-name">{{ auth()->user()->name }}</div>
-                <div class="user-email">{{ auth()->user()->email }}</div>
+                <div class="user-name"><?php echo e(auth()->user()->name); ?></div>
+                <div class="user-email"><?php echo e(auth()->user()->email); ?></div>
             </div>
         </div>
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
+        <form method="POST" action="<?php echo e(route('logout')); ?>">
+            <?php echo csrf_field(); ?>
             <button type="submit" class="btn-logout">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -501,10 +501,10 @@
     </div>
 </aside>
 
-{{-- ── Main ── --}}
+
 <div class="main-wrapper">
 
-    {{-- Topbar mobile --}}
+    
     <div class="topbar">
         <div style="display:flex;align-items:center;gap:0.6rem;">
             <div class="logo-icon" style="width:30px;height:30px;border-radius:8px;">
@@ -532,14 +532,14 @@
     </div>
 
     <div class="page-content">
-        @if(session('success'))
-            <div class="alert alert-success mb-3">{{ session('success') }}</div>
-        @endif
-        @yield('content')
+        <?php if(session('success')): ?>
+            <div class="alert alert-success mb-3"><?php echo e(session('success')); ?></div>
+        <?php endif; ?>
+        <?php echo $__env->yieldContent('content'); ?>
     </div>
 </div>
 
-{{-- ── Modal confirmación eliminar ── --}}
+
 <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-box">
         <div class="confirm-icon">
@@ -602,3 +602,4 @@
 </script>
 </body>
 </html>
+<?php /**PATH C:\laragon\www\sipsi\resources\views/layouts/app.blade.php ENDPATH**/ ?>

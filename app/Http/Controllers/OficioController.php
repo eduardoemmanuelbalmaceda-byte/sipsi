@@ -9,10 +9,27 @@ use Illuminate\Http\Request;
 
 class OficioController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $oficios = Oficio::with(['paciente', 'juzgado'])->latest()->paginate(10);
-        return view('oficios.index', compact('oficios'));
+        $q      = $request->input('q');
+        $estado = $request->input('estado');
+
+        $oficios = Oficio::with(['paciente', 'juzgado'])
+            ->when($q, fn($query) => $query
+                ->where('numero_oficio', 'like', "%$q%")
+                ->orWhereHas('paciente', fn($p) => $p
+                    ->where('nombre',   'like', "%$q%")
+                    ->orWhere('apellido','like', "%$q%")
+                    ->orWhere('dni',     'like', "%$q%"))
+                ->orWhereHas('juzgado', fn($j) => $j
+                    ->where('nombre', 'like', "%$q%"))
+            )
+            ->when($estado, fn($query) => $query->where('estado', $estado))
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('oficios.index', compact('oficios', 'q', 'estado'));
     }
 
     public function create()

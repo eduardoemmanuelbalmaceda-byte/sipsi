@@ -7,10 +7,21 @@ use Illuminate\Http\Request;
 
 class PacienteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pacientes = Paciente::latest()->paginate(10);
-        return view('pacientes.index', compact('pacientes'));
+        $q = $request->input('q');
+
+        $pacientes = Paciente::when($q, fn($query) => $query
+                ->where('nombre',   'like', "%$q%")
+                ->orWhere('apellido','like', "%$q%")
+                ->orWhere('dni',     'like', "%$q%")
+                ->orWhere('telefono','like', "%$q%")
+            )
+            ->orderBy('apellido')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('pacientes.index', compact('pacientes', 'q'));
     }
 
     public function create()

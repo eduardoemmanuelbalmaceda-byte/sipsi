@@ -7,10 +7,20 @@ use Illuminate\Http\Request;
 
 class JuzgadoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $juzgados = Juzgado::latest()->paginate(10);
-        return view('juzgados.index', compact('juzgados'));
+        $q = $request->input('q');
+
+        $juzgados = Juzgado::when($q, fn($query) => $query
+                ->where('nombre',   'like', "%$q%")
+                ->orWhere('ciudad', 'like', "%$q%")
+                ->orWhere('contacto','like', "%$q%")
+            )
+            ->orderBy('nombre')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('juzgados.index', compact('juzgados', 'q'));
     }
 
     public function create()

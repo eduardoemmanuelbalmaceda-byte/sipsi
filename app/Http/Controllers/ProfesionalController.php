@@ -8,10 +8,22 @@ use Illuminate\Http\Request;
 
 class ProfesionalController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $profesionales = Profesional::with('user')->latest()->paginate(10);
-        return view('profesionales.index', compact('profesionales'));
+        $q = $request->input('q');
+
+        $profesionales = Profesional::with('user')
+            ->when($q, fn($query) => $query
+                ->where('nombre',      'like', "%$q%")
+                ->orWhere('apellido',  'like', "%$q%")
+                ->orWhere('especialidad','like', "%$q%")
+                ->orWhere('rol',       'like', "%$q%")
+            )
+            ->orderBy('apellido')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('profesionales.index', compact('profesionales', 'q'));
     }
 
     public function create()
@@ -60,5 +72,8 @@ class ProfesionalController extends Controller
         return redirect()->route('profesionales.index')->with('success', 'Profesional eliminado correctamente.');
     }
 
-    public function show(Profesional $profesional) {}
+    public function show(Profesional $profesional)
+    {
+        return view('profesionales.show', compact('profesional'));
+    }
 }
