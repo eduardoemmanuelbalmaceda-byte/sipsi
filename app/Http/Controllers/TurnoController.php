@@ -51,7 +51,20 @@ class TurnoController extends Controller
         return redirect()->route('oficios.show', $turno->oficio_id)->with('success', 'Turno actualizado correctamente.');
     }
 
+    public function destroy(Turno $turno)
+    {
+        $oficio_id = $turno->oficio_id;
+        $turno->delete();
+
+        // Si el oficio no tiene informe, vuelve a pendiente
+        $oficio = Oficio::find($oficio_id);
+        if ($oficio && !$oficio->informe) {
+            $oficio->update(['estado' => 'pendiente']);
+        }
+
+        return redirect()->route('oficios.show', $oficio_id)->with('success', 'Turno eliminado correctamente.');
+    }
+
     public function index() {}
     public function show(Turno $turno) {}
-    public function destroy(Turno $turno) {}
 }

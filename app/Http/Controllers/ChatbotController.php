@@ -1,0 +1,262 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Oficio;
+use App\Models\Paciente;
+use App\Models\Turno;
+use App\Models\Informe;
+use App\Models\Profesional;
+use App\Models\Juzgado;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+
+class ChatbotController extends Controller
+{
+    public function responder(Request $request)
+    {
+        $msg = strtolower(trim($request->input('mensaje', '')));
+
+        $respuesta = $this->procesar($msg);
+
+        return response()->json(['respuesta' => $respuesta]);
+    }
+
+    private function procesar(string $msg): string
+    {
+        // ── Saludos ──
+        if ($this->contiene($msg, ['hola', 'buenas', 'buen dia', 'buenos dias', 'buenas tardes', 'buenas noches', 'hey'])) {
+            $hora = (int) Carbon::now()->format('H');
+            if ($hora < 12)      $saludo = 'Buenos días';
+            elseif ($hora < 19)  $saludo = 'Buenas tardes';
+            else                 $saludo = 'Buenas noches';
+            return "$saludo 👋 Soy el asistente de SIPSI. Podés preguntarme sobre oficios, turnos, pacientes, informes o profesionales.";
+        }
+
+        // ── Ayuda ──
+        if ($this->contiene($msg, ['ayuda', 'que podes', 'qué podés', 'que sabes', 'comandos', 'opciones', 'como funciona'])) {
+            return "Puedo responder preguntas como:\n• ¿Cuántos oficios pendientes hay?\n• ¿Cuáles son los próximos turnos?\n• ¿Hay informes sin enviar?\n• ¿Cuántos pacientes hay?\n• ¿Cuántos profesionales hay?\n• Resumen general\n• Oficios de hoy\n• Turnos de hoy";
+        }
+
+        // ── Resumen general ──
+        if ($this->contiene($msg, ['resumen', 'estado general', 'como estamos', 'cómo estamos', 'panorama'])) {
+            return $this->resumenGeneral();
+        }
+
+        // ── Oficios ──
+        if ($this->contiene($msg, ['oficio', 'oficios'])) {
+            return $this->consultaOficios($msg);
+        }
+
+        // ── Turnos ──
+        if ($this->contiene($msg, ['turno', 'turnos', 'cita', 'citas', 'agenda'])) {
+            return $this->consultaTurnos($msg);
+        }
+
+        // ── Informes ──
+        if ($this->contiene($msg, ['informe', 'informes', 'reporte', 'reportes'])) {
+            return $this->consultaInformes($msg);
+        }
+
+        // ── Pacientes ──
+        if ($this->contiene($msg, ['paciente', 'pacientes'])) {
+            return $this->consultaPacientes($msg);
+        }
+
+        // ── Profesionales ──
+        if ($this->contiene($msg, ['profesional', 'profesionales', 'medico', 'médico', 'doctor', 'psiquiatra'])) {
+            $total = Profesional::count();
+            return "Hay $total profesional" . ($total !== 1 ? 'es' : '') . " registrado" . ($total !== 1 ? 's' : '') . " en el sistema.";
+        }
+
+        // ── Juzgados ──
+        if ($this->contiene($msg, ['juzgado', 'juzgados'])) {
+            $total = Juzgado::count();
+            return "Hay $total juzgado" . ($total !== 1 ? 's' : '') . " registrado" . ($total !== 1 ? 's' : '') . " en el sistema.";
+        }
+
+        // ── Fallback ──
+        return "No entendí esa consulta 🤔 Escribí *ayuda* para ver qué puedo responder.";
+    }
+
+    // ── Consultas específicas ──
+
+    private function resumenGeneral(): string
+    {
+        $total     = Oficio::count();
+        $pend      = Oficio::where('estado', 'pendiente')->count();
+        $curso     = Oficio::where('estado', 'en_curso')->count();
+        $cerrados  = Oficio::where('estado', 'cerrado')->count();
+        $pacientes = Paciente::count();
+        $proxTurno = Turno::where('estado', 'pendiente')
+                        ->where('fecha_turno', '>=', Carbon::today())
+                        ->orderBy('fecha_turno')->orderBy('hora')
+                        ->first();
+        $sinEnviar = Informe::where('enviado_juzgado', false)->count();
+
+        $lineas = [
+            "📋 *Resumen general*",
+            "• Oficios totales: $total ($pend pendientes, $curso en curso, $cerrados cerrados)",
+            "• Pacientes registrados: $pacientes",
+        ];
+
+        if ($proxTurno) {
+            $fecha = Carbon::parse($proxTurno->fecha_turno)->format('d/m/Y');
+            $hora  = substr($proxTurno->hora, 0, 5);
+            $lineas[] = "• Próximo turno: $fecha a las {$hora}hs";
+        }
+
+        if ($sinEnviar > 0) {
+            $lineas[] = "⚠️ Hay $sinEnviar informe" . ($sinEnviar !== 1 ? 's' : '') . " pendiente" . ($sinEnviar !== 1 ? 's' : '') . " de envío al juzgado.";
+        } else {
+            $lineas[] = "✅ Todos los informes fueron enviados al juzgado.";
+        }
+
+        return implode("\n", $lineas);
+    }
+
+    private function consultaOficios(string $msg): string
+    {
+        // Pendientes
+        if ($this->contiene($msg, ['pendiente', 'pendientes', 'sin turno'])) {
+            $n = Oficio::where('estado', 'pendiente')->count();
+            return "Hay $n oficio" . ($n !== 1 ? 's' : '') . " pendiente" . ($n !== 1 ? 's' : '') . " (sin turno asignado).";
+        }
+
+        // En curso
+        if ($this->contiene($msg, ['en curso', 'curso', 'activo', 'activos'])) {
+            $n = Oficio::where('estado', 'en_curso')->count();
+            return "Hay $n oficio" . ($n !== 1 ? 's' : '') . " en curso (con turno asignado).";
+        }
+
+        // Cerrados
+        if ($this->contiene($msg, ['cerrado', 'cerrados', 'finalizado', 'finalizados'])) {
+            $n = Oficio::where('estado', 'cerrado')->count();
+            return "Hay $n oficio" . ($n !== 1 ? 's' : '') . " cerrado" . ($n !== 1 ? 's' : '') . " (con informe cargado).";
+        }
+
+        // Hoy
+        if ($this->contiene($msg, ['hoy', 'de hoy'])) {
+            $n = Oficio::whereDate('fecha_recepcion', Carbon::today())->count();
+            return $n > 0
+                ? "Se recibieron $n oficio" . ($n !== 1 ? 's' : '') . " hoy."
+                : "No se recibieron oficios hoy.";
+        }
+
+        // Esta semana
+        if ($this->contiene($msg, ['semana', 'esta semana'])) {
+            $n = Oficio::whereBetween('fecha_recepcion', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->count();
+            return "Esta semana se recibieron $n oficio" . ($n !== 1 ? 's' : '') . ".";
+        }
+
+        // Este mes
+        if ($this->contiene($msg, ['mes', 'este mes'])) {
+            $n = Oficio::whereMonth('fecha_recepcion', Carbon::now()->month)
+                       ->whereYear('fecha_recepcion', Carbon::now()->year)
+                       ->count();
+            return "Este mes se recibieron $n oficio" . ($n !== 1 ? 's' : '') . ".";
+        }
+
+        // Total
+        $total    = Oficio::count();
+        $pend     = Oficio::where('estado', 'pendiente')->count();
+        $curso    = Oficio::where('estado', 'en_curso')->count();
+        $cerrados = Oficio::where('estado', 'cerrado')->count();
+        return "Total de oficios: $total\n• Pendientes: $pend\n• En curso: $curso\n• Cerrados: $cerrados";
+    }
+
+    private function consultaTurnos(string $msg): string
+    {
+        // Hoy
+        if ($this->contiene($msg, ['hoy', 'de hoy'])) {
+            $turnos = Turno::with(['oficio.paciente', 'profesional'])
+                ->whereDate('fecha_turno', Carbon::today())
+                ->orderBy('hora')
+                ->get();
+
+            if ($turnos->isEmpty()) return "No hay turnos programados para hoy.";
+
+            $lineas = ["📅 Turnos de hoy (" . $turnos->count() . "):"];
+            foreach ($turnos as $t) {
+                $hora = substr($t->hora, 0, 5);
+                $pac  = $t->oficio->paciente->apellido . ', ' . $t->oficio->paciente->nombre;
+                $prof = $t->profesional->apellido;
+                $lineas[] = "• {$hora}hs — $pac (Dr/a. $prof)";
+            }
+            return implode("\n", $lineas);
+        }
+
+        // Próximos
+        if ($this->contiene($msg, ['proximo', 'próximo', 'proximos', 'próximos', 'siguiente', 'siguientes', 'pendiente', 'pendientes'])) {
+            $turnos = Turno::with(['oficio.paciente', 'profesional'])
+                ->where('estado', 'pendiente')
+                ->where('fecha_turno', '>=', Carbon::today())
+                ->orderBy('fecha_turno')->orderBy('hora')
+                ->take(5)
+                ->get();
+
+            if ($turnos->isEmpty()) return "No hay turnos próximos pendientes.";
+
+            $lineas = ["📅 Próximos turnos:"];
+            foreach ($turnos as $t) {
+                $fecha = Carbon::parse($t->fecha_turno)->format('d/m/Y');
+                $hora  = substr($t->hora, 0, 5);
+                $pac   = $t->oficio->paciente->apellido . ', ' . $t->oficio->paciente->nombre;
+                $lineas[] = "• $fecha {$hora}hs — $pac";
+            }
+            return implode("\n", $lineas);
+        }
+
+        // Total
+        $total    = Turno::count();
+        $pend     = Turno::where('estado', 'pendiente')->count();
+        $realiz   = Turno::where('estado', 'realizado')->count();
+        $ausente  = Turno::where('estado', 'ausente')->count();
+        return "Total de turnos: $total\n• Pendientes: $pend\n• Realizados: $realiz\n• Ausentes: $ausente";
+    }
+
+    private function consultaInformes(string $msg): string
+    {
+        // Sin enviar
+        if ($this->contiene($msg, ['sin enviar', 'no enviado', 'pendiente', 'pendientes', 'falta enviar'])) {
+            $n = Informe::where('enviado_juzgado', false)->count();
+            return $n > 0
+                ? "Hay $n informe" . ($n !== 1 ? 's' : '') . " pendiente" . ($n !== 1 ? 's' : '') . " de envío al juzgado."
+                : "✅ Todos los informes fueron enviados al juzgado.";
+        }
+
+        // Enviados
+        if ($this->contiene($msg, ['enviado', 'enviados', 'ya enviado'])) {
+            $n = Informe::where('enviado_juzgado', true)->count();
+            return "Hay $n informe" . ($n !== 1 ? 's' : '') . " enviado" . ($n !== 1 ? 's' : '') . " al juzgado.";
+        }
+
+        // Total
+        $total    = Informe::count();
+        $enviados = Informe::where('enviado_juzgado', true)->count();
+        $pend     = $total - $enviados;
+        return "Total de informes: $total\n• Enviados al juzgado: $enviados\n• Pendientes de envío: $pend";
+    }
+
+    private function consultaPacientes(string $msg): string
+    {
+        $total = Paciente::count();
+
+        if ($this->contiene($msg, ['cuantos', 'cuántos', 'total', 'cantidad'])) {
+            return "Hay $total paciente" . ($total !== 1 ? 's' : '') . " registrado" . ($total !== 1 ? 's' : '') . " en el sistema.";
+        }
+
+        // Con oficios activos
+        $activos = Paciente::whereHas('oficios', fn($q) => $q->whereIn('estado', ['pendiente', 'en_curso']))->count();
+        return "Pacientes registrados: $total\n• Con oficios activos: $activos";
+    }
+
+    // ── Helper ──
+    private function contiene(string $texto, array $palabras): bool
+    {
+        foreach ($palabras as $p) {
+            if (str_contains($texto, $p)) return true;
+        }
+        return false;
+    }
+}

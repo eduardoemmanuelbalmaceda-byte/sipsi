@@ -52,7 +52,20 @@ class InformeController extends Controller
         return redirect()->route('oficios.show', $informe->oficio_id)->with('success', 'Informe actualizado correctamente.');
     }
 
+    public function destroy(Informe $informe)
+    {
+        $oficio_id = $informe->oficio_id;
+        $informe->delete();
+
+        // Al borrar el informe, el oficio vuelve a en_curso (tiene turno)
+        $oficio = Oficio::find($oficio_id);
+        if ($oficio && $oficio->turno) {
+            $oficio->update(['estado' => 'en_curso']);
+        }
+
+        return redirect()->route('oficios.show', $oficio_id)->with('success', 'Informe eliminado correctamente.');
+    }
+
     public function index() {}
     public function show(Informe $informe) {}
-    public function destroy(Informe $informe) {}
 }

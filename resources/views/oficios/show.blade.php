@@ -48,7 +48,14 @@
                 @if(!$oficio->turno)
                     <a href="{{ route('turnos.create', $oficio) }}" class="btn btn-sm btn-primary">+ Asignar turno</a>
                 @else
-                    <a href="{{ route('turnos.edit', $oficio->turno) }}" class="btn btn-sm btn-warning">Editar</a>
+                    <div class="d-flex gap-1">
+                        <a href="{{ route('turnos.edit', $oficio->turno) }}" class="btn btn-sm btn-warning">Editar</a>
+                        <form action="{{ route('turnos.destroy', $oficio->turno) }}" method="POST"
+                              onsubmit="return confirm('¿Eliminar este turno? El oficio volverá a estado Pendiente.')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                        </form>
+                    </div>
                 @endif
             </div>
             <div class="card-body">
@@ -70,7 +77,14 @@
                 @if(!$oficio->informe && $oficio->turno)
                     <a href="{{ route('informes.create', $oficio) }}" class="btn btn-sm btn-primary">+ Cargar informe</a>
                 @elseif($oficio->informe)
-                    <a href="{{ route('informes.edit', $oficio->informe) }}" class="btn btn-sm btn-warning">Editar</a>
+                    <div class="d-flex gap-1">
+                        <a href="{{ route('informes.edit', $oficio->informe) }}" class="btn btn-sm btn-warning">Editar</a>
+                        <form action="{{ route('informes.destroy', $oficio->informe) }}" method="POST"
+                              onsubmit="return confirm('¿Eliminar este informe? El oficio volverá a estado En curso.')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                        </form>
+                    </div>
                 @endif
             </div>
             <div class="card-body">
