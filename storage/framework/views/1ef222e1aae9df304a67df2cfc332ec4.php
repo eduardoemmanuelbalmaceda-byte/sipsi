@@ -473,7 +473,7 @@
 
         <div class="nav-label" style="margin-top:0.5rem;">Informes</div>
 
-        <a href="<?php echo e(route('oficios.index')); ?>" class="sidebar-link">
+        <a href="<?php echo e(route('dashboard')); ?>" class="sidebar-link <?php echo e(request()->routeIs('dashboard') ? 'active' : ''); ?>">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
@@ -600,6 +600,312 @@
 
     applyTheme(localStorage.getItem('sipsi-theme') || 'light');
 </script>
+
+
+<style>
+    /* ── Botón flotante ── */
+    .chat-fab {
+        position: fixed; bottom: 1.75rem; right: 1.75rem;
+        width: 52px; height: 52px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--lavender), var(--indigo));
+        border: none; cursor: pointer; z-index: 9000;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 20px rgba(107,95,181,0.45);
+        transition: transform 0.2s, box-shadow 0.2s;
+        color: white;
+    }
+    .chat-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(107,95,181,0.55); }
+    .chat-fab .badge-dot {
+        position: absolute; top: 3px; right: 3px;
+        width: 10px; height: 10px; border-radius: 50%;
+        background: #ef4444; border: 2px solid var(--bg);
+        display: none;
+    }
+    .chat-fab.has-notif .badge-dot { display: block; }
+
+    /* ── Ventana ── */
+    .chat-window {
+        position: fixed; bottom: 5.5rem; right: 1.75rem;
+        width: 340px; max-height: 480px;
+        background: var(--surface);
+        border-radius: 1.1rem;
+        box-shadow: 0 12px 48px rgba(0,0,0,0.22);
+        border: 1px solid var(--border);
+        display: flex; flex-direction: column;
+        z-index: 8999;
+        transform: scale(0.92) translateY(12px);
+        opacity: 0; pointer-events: none;
+        transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), opacity 0.18s;
+    }
+    .chat-window.open {
+        transform: scale(1) translateY(0);
+        opacity: 1; pointer-events: all;
+    }
+    @media (max-width: 480px) {
+        .chat-window { width: calc(100vw - 2rem); right: 1rem; }
+    }
+
+    /* ── Header ── */
+    .chat-header {
+        padding: 0.85rem 1rem;
+        background: linear-gradient(135deg, var(--sidebar-bg), var(--sidebar-bg2));
+        border-radius: 1.1rem 1.1rem 0 0;
+        display: flex; align-items: center; gap: 0.65rem;
+    }
+    .chat-avatar {
+        width: 34px; height: 34px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--mint), var(--green));
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+    .chat-header-info { flex: 1; }
+    .chat-header-name   { font-size: 0.875rem; font-weight: 700; color: #fff; }
+    .chat-header-status { font-size: 0.7rem; color: var(--mint); display: flex; align-items: center; gap: 0.3rem; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+    .chat-close {
+        background: none; border: none; cursor: pointer;
+        color: rgba(255,255,255,0.5); padding: 0.2rem;
+        transition: color 0.15s;
+    }
+    .chat-close:hover { color: #fff; }
+
+    /* ── Mensajes ── */
+    .chat-messages {
+        flex: 1; overflow-y: auto; padding: 0.85rem;
+        display: flex; flex-direction: column; gap: 0.6rem;
+        scroll-behavior: smooth;
+    }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .msg {
+        max-width: 85%; padding: 0.55rem 0.85rem;
+        border-radius: 1rem; font-size: 0.845rem; line-height: 1.45;
+        white-space: pre-wrap; word-break: break-word;
+        animation: msgIn 0.18s ease;
+    }
+    @keyframes msgIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+    .msg.bot {
+        background: var(--surface2);
+        color: var(--text);
+        border-bottom-left-radius: 4px;
+        align-self: flex-start;
+    }
+    .msg.user {
+        background: linear-gradient(135deg, var(--lavender), var(--indigo));
+        color: white;
+        border-bottom-right-radius: 4px;
+        align-self: flex-end;
+    }
+    .msg-typing {
+        display: flex; gap: 4px; align-items: center;
+        padding: 0.6rem 0.85rem;
+        background: var(--surface2); border-radius: 1rem; border-bottom-left-radius: 4px;
+        align-self: flex-start;
+    }
+    .msg-typing span {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--text-muted);
+        animation: bounce 1.2s infinite;
+    }
+    .msg-typing span:nth-child(2) { animation-delay: 0.2s; }
+    .msg-typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+        0%,60%,100% { transform: translateY(0); }
+        30%          { transform: translateY(-5px); }
+    }
+
+    /* ── Sugerencias ── */
+    .chat-suggestions {
+        padding: 0 0.85rem 0.5rem;
+        display: flex; flex-wrap: wrap; gap: 0.4rem;
+    }
+    .sug-btn {
+        font-size: 0.72rem; padding: 0.3rem 0.65rem;
+        border-radius: 20px; border: 1px solid var(--border);
+        background: var(--surface2); color: var(--text-soft);
+        cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .sug-btn:hover {
+        background: var(--lavender); color: white; border-color: var(--lavender);
+    }
+
+    /* ── Input ── */
+    .chat-input-row {
+        padding: 0.65rem 0.85rem 0.85rem;
+        display: flex; gap: 0.5rem; align-items: center;
+        border-top: 1px solid var(--border);
+    }
+    .chat-input {
+        flex: 1; padding: 0.55rem 0.85rem;
+        border: 1.5px solid var(--input-border);
+        border-radius: 2rem; font-size: 0.875rem;
+        background: var(--input-bg); color: var(--text);
+        outline: none; transition: border-color 0.2s;
+    }
+    .chat-input:focus { border-color: var(--lavender); }
+    .chat-input::placeholder { color: var(--text-muted); }
+    .chat-send {
+        width: 36px; height: 36px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--lavender), var(--indigo));
+        border: none; cursor: pointer; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        color: white; transition: transform 0.15s, opacity 0.15s;
+    }
+    .chat-send:hover { transform: scale(1.08); }
+    .chat-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+</style>
+
+
+<button class="chat-fab" id="chatFab" onclick="toggleChat()" title="Asistente SIPSI">
+    <div class="badge-dot"></div>
+    <svg id="chatIconOpen" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+    </svg>
+    <svg id="chatIconClose" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display:none;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+</button>
+
+
+<div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+        <div class="chat-avatar">
+            <svg width="18" height="18" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+        </div>
+        <div class="chat-header-info">
+            <div class="chat-header-name">Asistente SIPSI</div>
+            <div class="chat-header-status"><div class="status-dot"></div> En línea</div>
+        </div>
+        <button class="chat-close" onclick="toggleChat()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="chat-messages" id="chatMessages"></div>
+
+    <div class="chat-suggestions" id="chatSuggestions">
+        <button class="sug-btn" onclick="enviarSugerencia(this)">Resumen general</button>
+        <button class="sug-btn" onclick="enviarSugerencia(this)">Oficios pendientes</button>
+        <button class="sug-btn" onclick="enviarSugerencia(this)">Próximos turnos</button>
+        <button class="sug-btn" onclick="enviarSugerencia(this)">Informes sin enviar</button>
+        <button class="sug-btn" onclick="enviarSugerencia(this)">Turnos de hoy</button>
+    </div>
+
+    <div class="chat-input-row">
+        <input type="text" class="chat-input" id="chatInput"
+               placeholder="Escribí tu consulta..."
+               onkeydown="if(event.key==='Enter') enviarMensaje()">
+        <button class="chat-send" id="chatSendBtn" onclick="enviarMensaje()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<script>
+(function() {
+    let chatOpen = false;
+    let initialized = false;
+
+    window.toggleChat = function() {
+        chatOpen = !chatOpen;
+        const win = document.getElementById('chatWindow');
+        const fab = document.getElementById('chatFab');
+        win.classList.toggle('open', chatOpen);
+        document.getElementById('chatIconOpen').style.display  = chatOpen ? 'none'  : 'block';
+        document.getElementById('chatIconClose').style.display = chatOpen ? 'block' : 'none';
+        fab.classList.remove('has-notif');
+
+        if (chatOpen && !initialized) {
+            initialized = true;
+            agregarMensajeBot('¡Hola! 👋 Soy el asistente de SIPSI. Podés preguntarme sobre oficios, turnos, pacientes o informes.\n\nEscribí *ayuda* para ver todas las opciones.');
+        }
+        if (chatOpen) {
+            setTimeout(() => document.getElementById('chatInput').focus(), 250);
+        }
+    };
+
+    window.enviarSugerencia = function(btn) {
+        document.getElementById('chatInput').value = btn.textContent;
+        enviarMensaje();
+    };
+
+    window.enviarMensaje = async function() {
+        const input = document.getElementById('chatInput');
+        const texto = input.value.trim();
+        if (!texto) return;
+
+        input.value = '';
+        document.getElementById('chatSendBtn').disabled = true;
+
+        agregarMensajeUsuario(texto);
+        const typingEl = agregarTyping();
+
+        try {
+            const res = await fetch('<?php echo e(route("chatbot.responder")); ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+                },
+                body: JSON.stringify({ mensaje: texto })
+            });
+            const data = await res.json();
+            typingEl.remove();
+            agregarMensajeBot(data.respuesta);
+        } catch (e) {
+            typingEl.remove();
+            agregarMensajeBot('Ocurrió un error al procesar tu consulta. Intentá de nuevo.');
+        }
+
+        document.getElementById('chatSendBtn').disabled = false;
+        input.focus();
+    };
+
+    function agregarMensajeUsuario(texto) {
+        const el = document.createElement('div');
+        el.className = 'msg user';
+        el.textContent = texto;
+        appendMsg(el);
+    }
+
+    function agregarMensajeBot(texto) {
+        const el = document.createElement('div');
+        el.className = 'msg bot';
+        // Soporte básico para *negrita*
+        el.innerHTML = texto.replace(/\*(.*?)\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        appendMsg(el);
+    }
+
+    function agregarTyping() {
+        const el = document.createElement('div');
+        el.className = 'msg-typing';
+        el.innerHTML = '<span></span><span></span><span></span>';
+        appendMsg(el);
+        return el;
+    }
+
+    function appendMsg(el) {
+        const container = document.getElementById('chatMessages');
+        container.appendChild(el);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // Mostrar notificación en el botón después de 3 segundos si no se abrió
+    setTimeout(() => {
+        if (!chatOpen) document.getElementById('chatFab').classList.add('has-notif');
+    }, 3000);
+})();
+</script>
+
 </body>
 </html>
 <?php /**PATH C:\laragon\www\sipsi\resources\views/layouts/app.blade.php ENDPATH**/ ?>

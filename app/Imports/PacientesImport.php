@@ -5,14 +5,15 @@ namespace App\Imports;
 use App\Models\Paciente;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
-use Maatwebsite\Excel\Concerns\WithSkipDuplicates;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Concerns\SkipsOnError;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 
-class PacientesImport implements ToModel, WithHeadingRow, SkipsOnError
+class PacientesImport implements ToModel, WithHeadingRow, SkipsOnError, SkipsOnFailure
 {
     use SkipsErrors;
+    use SkipsFailures;
 
     private int $importados = 0;
     private int $omitidos   = 0;
