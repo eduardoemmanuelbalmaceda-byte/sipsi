@@ -78,6 +78,12 @@
                     <a href="{{ route('informes.create', $oficio) }}" class="btn btn-sm btn-primary">+ Cargar informe</a>
                 @elseif($oficio->informe)
                     <div class="d-flex gap-1">
+                        <a href="{{ route('informes.pdf', $oficio->informe) }}" class="btn btn-sm btn-success" target="_blank">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-right:2px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            PDF
+                        </a>
                         <a href="{{ route('informes.edit', $oficio->informe) }}" class="btn btn-sm btn-warning">Editar</a>
                         <form action="{{ route('informes.destroy', $oficio->informe) }}" method="POST"
                               onsubmit="return confirm('¿Eliminar este informe? El oficio volverá a estado En curso.')">
@@ -91,9 +97,29 @@
                 @if($oficio->informe)
                     <p><strong>Fecha:</strong> {{ $oficio->informe->fecha_informe }}</p>
                     <p><strong>Profesional:</strong> {{ $oficio->informe->profesional->apellido }}, {{ $oficio->informe->profesional->nombre }}</p>
-                    <p><strong>Enviado al juzgado:</strong> {{ $oficio->informe->enviado_juzgado ? 'Sí' : 'No' }}</p>
+
                     @if($oficio->informe->enviado_juzgado)
-                        <p><strong>Fecha de envío:</strong> {{ $oficio->informe->fecha_envio }}</p>
+                        <p>
+                            <strong>Envío al juzgado:</strong>
+                            <span class="badge bg-success">
+                                ✓ Enviado el {{ \Carbon\Carbon::parse($oficio->informe->fecha_envio)->format('d/m/Y') }}
+                            </span>
+                        </p>
+                    @else
+                        <p>
+                            <strong>Envío al juzgado:</strong>
+                            <span class="badge bg-warning">Pendiente</span>
+                        </p>
+                        <form action="{{ route('informes.marcarEnviado', $oficio->informe) }}" method="POST" class="mt-2">
+                            @csrf @method('PATCH')
+                            <button type="submit" class="btn btn-sm btn-success"
+                                    onclick="return confirm('¿Confirmar que el informe fue enviado al juzgado hoy?')">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-right:3px;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Marcar como enviado
+                            </button>
+                        </form>
                     @endif
                 @elseif(!$oficio->turno)
                     <p class="text-muted">Primero asigná un turno.</p>

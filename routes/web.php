@@ -19,6 +19,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/chatbot', [ChatbotController::class, 'responder'])->name('chatbot.responder');
 
     Route::resource('oficios', OficioController::class);
+    Route::post('pacientes/importar', [PacienteController::class, 'importar'])->name('pacientes.importar');
+    Route::get('pacientes/plantilla', [PacienteController::class, 'plantilla'])->name('pacientes.plantilla');
     Route::resource('pacientes', PacienteController::class);
     Route::resource('juzgados', JuzgadoController::class);
     Route::resource('profesionales', ProfesionalController::class)->parameters([
@@ -36,6 +38,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('informes/{informe}/edit', [InformeController::class, 'edit'])->name('informes.edit');
     Route::put('informes/{informe}', [InformeController::class, 'update'])->name('informes.update');
     Route::delete('informes/{informe}', [InformeController::class, 'destroy'])->name('informes.destroy');
+    Route::get('informes/{informe}/pdf', [InformeController::class, 'pdf'])->name('informes.pdf');
+    Route::patch('informes/{informe}/marcar-enviado', [InformeController::class, 'marcarEnviado'])->name('informes.marcarEnviado');
 });
 
 require __DIR__.'/auth.php';
