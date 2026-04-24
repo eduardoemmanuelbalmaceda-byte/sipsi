@@ -758,6 +758,24 @@
     }
     .chat-send:hover { transform: scale(1.08); }
     .chat-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .chat-mic {
+        width: 36px; height: 36px; border-radius: 50%;
+        background: var(--surface2);
+        border: 1.5px solid var(--border);
+        cursor: pointer; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--text-muted); transition: all 0.15s;
+    }
+    .chat-mic:hover { background: var(--lavender); color: white; border-color: var(--lavender); }
+    .chat-mic.recording {
+        background: #ef4444; border-color: #ef4444; color: white;
+        animation: pulse-mic 1s infinite;
+    }
+    @keyframes pulse-mic {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+        50%       { box-shadow: 0 0 0 7px rgba(239,68,68,0); }
+    }
 </style>
 
 {{-- Botón flotante --}}
@@ -804,6 +822,12 @@
         <input type="text" class="chat-input" id="chatInput"
                placeholder="Escribí tu consulta..."
                onkeydown="if(event.key==='Enter') enviarMensaje()">
+        <button class="chat-mic" id="chatMicBtn" onclick="toggleMic()" title="Hablar">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
+            </svg>
+        </button>
         <button class="chat-send" id="chatSendBtn" onclick="enviarMensaje()">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
@@ -905,6 +929,61 @@
     setTimeout(() => {
         if (!chatOpen) document.getElementById('chatFab').classList.add('has-notif');
     }, 3000);
+
+    // ── Micrófono (Web Speech API) ──
+    let recognition = null;
+    let isRecording = false;
+
+    window.toggleMic = function() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            agregarMensajeBot('Tu navegador no soporta reconocimiento de voz. Probá con Chrome.');
+            return;
+        }
+
+        if (isRecording) {
+            recognition.stop();
+            return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = 'es-AR';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        const micBtn = document.getElementById('chatMicBtn');
+        const input  = document.getElementById('chatInput');
+
+        recognition.onstart = () => {
+            isRecording = true;
+            micBtn.classList.add('recording');
+            input.placeholder = '🎙️ Escuchando...';
+        };
+
+        recognition.onresult = (event) => {
+            const texto = event.results[0][0].transcript;
+            input.value = texto;
+        };
+
+        recognition.onend = () => {
+            isRecording = false;
+            micBtn.classList.remove('recording');
+            input.placeholder = 'Escribí tu consulta...';
+            // Si hay texto transcripto, enviarlo automáticamente
+            if (input.value.trim()) enviarMensaje();
+        };
+
+        recognition.onerror = (event) => {
+            isRecording = false;
+            micBtn.classList.remove('recording');
+            input.placeholder = 'Escribí tu consulta...';
+            if (event.error !== 'no-speech') {
+                agregarMensajeBot('No pude escucharte. Intentá de nuevo.');
+            }
+        };
+
+        recognition.start();
+    };
 })();
 </script>
 
