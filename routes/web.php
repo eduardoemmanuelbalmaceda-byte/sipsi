@@ -15,6 +15,10 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/chatbot/page', function () {
+        return view('chatbot');
+    })->name('chatbot.page');
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/chatbot', [ChatbotController::class, 'responder'])->name('chatbot.responder');
     Route::get('/chatbot/alertas', [ChatbotController::class, 'alertas'])->name('chatbot.alertas');
@@ -24,6 +28,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('pacientes/plantilla', [PacienteController::class, 'plantilla'])->name('pacientes.plantilla');
     Route::resource('pacientes', PacienteController::class);
     Route::resource('juzgados', JuzgadoController::class);
+    Route::get('juzgados-estadisticas', [JuzgadoController::class, 'estadisticas'])->name('juzgados.estadisticas');
     Route::resource('profesionales', ProfesionalController::class)->parameters([
         'profesionales' => 'profesional'
     ]);

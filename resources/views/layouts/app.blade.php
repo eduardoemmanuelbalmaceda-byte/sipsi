@@ -443,6 +443,13 @@
     <nav class="sidebar-nav">
         <div class="nav-label">Gestión clínica</div>
 
+        <a href="{{ route('chatbot.page') }}" class="sidebar-link {{ request()->routeIs('chatbot.page') ? 'active' : '' }}">
+            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            Asistente
+        </a>
+
         <a href="{{ route('oficios.index') }}" class="sidebar-link {{ request()->routeIs('oficios.*') ? 'active' : '' }}">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -457,11 +464,19 @@
             Pacientes
         </a>
 
-        <a href="{{ route('juzgados.index') }}" class="sidebar-link {{ request()->routeIs('juzgados.*') ? 'active' : '' }}">
+        <a href="{{ route('juzgados.index') }}" class="sidebar-link {{ request()->routeIs('juzgados.index') || request()->routeIs('juzgados.create') || request()->routeIs('juzgados.edit') ? 'active' : '' }}">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
             </svg>
             Juzgados
+        </a>
+
+        <a href="{{ route('juzgados.estadisticas') }}" class="sidebar-link {{ request()->routeIs('juzgados.estadisticas') ? 'active' : '' }}">
+            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
+            </svg>
+            Est. Juzgados
         </a>
 
         <a href="{{ route('profesionales.index') }}" class="sidebar-link {{ request()->routeIs('profesionales.*') ? 'active' : '' }}">
