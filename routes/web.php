@@ -17,6 +17,7 @@ Route::get('/', function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/chatbot', [ChatbotController::class, 'responder'])->name('chatbot.responder');
+    Route::get('/chatbot/alertas', [ChatbotController::class, 'alertas'])->name('chatbot.alertas');
 
     Route::resource('oficios', OficioController::class);
     Route::post('pacientes/importar', [PacienteController::class, 'importar'])->name('pacientes.importar');

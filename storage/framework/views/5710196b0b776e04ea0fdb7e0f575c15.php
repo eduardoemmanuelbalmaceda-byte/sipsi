@@ -147,6 +147,157 @@
 </div>
 
 
+<?php if(count($alertas) > 0): ?>
+<div id="alertasPanel" style="margin-bottom:1.5rem;">
+    <style>
+        .alertas-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        .alertas-header-title {
+            font-size: 0.85rem; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.05em;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .alertas-dismiss {
+            font-size: 0.75rem; color: var(--text-muted); background: none;
+            border: none; cursor: pointer; padding: 0.2rem 0.5rem;
+            border-radius: 0.4rem; transition: background 0.15s;
+        }
+        .alertas-dismiss:hover { background: var(--surface2); color: var(--text); }
+
+        .alerta-card {
+            border-radius: 0.75rem;
+            border: 1px solid;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+            animation: alertaIn 0.3s ease both;
+        }
+        @keyframes alertaIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .alerta-card.critico     { background: #fef2f2; border-color: #fecaca; }
+        .alerta-card.advertencia { background: #fffbeb; border-color: #fde68a; }
+        .alerta-card.info        { background: #eff6ff; border-color: #bfdbfe; }
+
+        .alerta-card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.65rem 1rem; cursor: pointer; user-select: none;
+        }
+        .alerta-card.critico     .alerta-card-header { border-bottom: 1px solid #fecaca; }
+        .alerta-card.advertencia .alerta-card-header { border-bottom: 1px solid #fde68a; }
+        .alerta-card.info        .alerta-card-header { border-bottom: 1px solid #bfdbfe; }
+
+        .alerta-card-title {
+            font-size: 0.875rem; font-weight: 700;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .alerta-card.critico     .alerta-card-title { color: #991b1b; }
+        .alerta-card.advertencia .alerta-card-title { color: #92400e; }
+        .alerta-card.info        .alerta-card-title { color: #1e40af; }
+
+        .alerta-badge {
+            font-size: 0.7rem; font-weight: 700; padding: 2px 8px;
+            border-radius: 20px; margin-left: 0.4rem;
+        }
+        .alerta-card.critico     .alerta-badge { background: #fee2e2; color: #991b1b; }
+        .alerta-card.advertencia .alerta-badge { background: #fef3c7; color: #92400e; }
+        .alerta-card.info        .alerta-badge { background: #dbeafe; color: #1e40af; }
+
+        .alerta-chevron {
+            transition: transform 0.2s;
+            color: currentColor; opacity: 0.5;
+        }
+        .alerta-card.collapsed .alerta-chevron { transform: rotate(-90deg); }
+
+        .alerta-card-body { padding: 0.5rem 0; }
+        .alerta-card.collapsed .alerta-card-body { display: none; }
+
+        .alerta-item {
+            display: flex; align-items: flex-start; gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            transition: background 0.12s;
+        }
+        .alerta-item:last-child { border-bottom: none; }
+        .alerta-card.critico     .alerta-item:hover { background: rgba(239,68,68,0.06); }
+        .alerta-card.advertencia .alerta-item:hover { background: rgba(245,158,11,0.06); }
+        .alerta-card.info        .alerta-item:hover { background: rgba(59,130,246,0.06); }
+
+        .alerta-item-dot {
+            width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+        }
+        .alerta-card.critico     .alerta-item-dot { background: #ef4444; }
+        .alerta-card.advertencia .alerta-item-dot { background: #f59e0b; }
+        .alerta-card.info        .alerta-item-dot { background: #3b82f6; }
+
+        .alerta-item-main { flex: 1; min-width: 0; }
+        .alerta-item-texto  { font-size: 0.845rem; font-weight: 600; color: var(--text); }
+        .alerta-item-detalle{ font-size: 0.76rem; color: var(--text-muted); margin-top: 1px; }
+        .alerta-item-link {
+            font-size: 0.75rem; font-weight: 600; flex-shrink: 0;
+            padding: 2px 10px; border-radius: 20px; text-decoration: none;
+            transition: opacity 0.15s;
+        }
+        .alerta-item-link:hover { opacity: 0.75; }
+        .alerta-card.critico     .alerta-item-link { background: #fee2e2; color: #991b1b; }
+        .alerta-card.advertencia .alerta-item-link { background: #fef3c7; color: #92400e; }
+        .alerta-card.info        .alerta-item-link { background: #dbeafe; color: #1e40af; }
+
+        .alerta-more {
+            font-size: 0.76rem; color: var(--text-muted);
+            padding: 0.4rem 1rem 0.5rem 2.25rem;
+        }
+    </style>
+
+    <div class="alertas-header">
+        <div class="alertas-header-title">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+            <?php echo e(collect($alertas)->sum(fn($a) => count($a['items']))); ?> alerta<?php echo e(collect($alertas)->sum(fn($a) => count($a['items'])) !== 1 ? 's' : ''); ?> activa<?php echo e(collect($alertas)->sum(fn($a) => count($a['items'])) !== 1 ? 's' : ''); ?>
+
+        </div>
+        <button class="alertas-dismiss" onclick="document.getElementById('alertasPanel').style.display='none'">
+            Ocultar
+        </button>
+    </div>
+
+    <?php $__currentLoopData = $alertas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $alerta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+    <?php $max = 3; $resto = count($alerta['items']) - $max; ?>
+    <div class="alerta-card <?php echo e($alerta['nivel']); ?>" onclick="this.classList.toggle('collapsed')">
+        <div class="alerta-card-header">
+            <div class="alerta-card-title">
+                <?php echo e($alerta['icono']); ?> <?php echo e($alerta['titulo']); ?>
+
+                <span class="alerta-badge"><?php echo e(count($alerta['items'])); ?></span>
+            </div>
+            <svg class="alerta-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </div>
+        <div class="alerta-card-body" onclick="event.stopPropagation()">
+            <?php $__currentLoopData = array_slice($alerta['items'], 0, $max); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <div class="alerta-item">
+                <div class="alerta-item-dot"></div>
+                <div class="alerta-item-main">
+                    <div class="alerta-item-texto"><?php echo e($item['texto']); ?></div>
+                    <div class="alerta-item-detalle"><?php echo e($item['detalle']); ?></div>
+                </div>
+                <a href="<?php echo e($item['link']); ?>" class="alerta-item-link">Ver</a>
+            </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            <?php if($resto > 0): ?>
+            <div class="alerta-more">...y <?php echo e($resto); ?> más</div>
+            <?php endif; ?>
+        </div>
+    </div>
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+</div>
+<?php endif; ?>
+
+
 <div class="kpi-grid">
     <div class="kpi-card total">
         <div class="kpi-icon">

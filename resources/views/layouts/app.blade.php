@@ -776,6 +776,24 @@
         0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
         50%       { box-shadow: 0 0 0 7px rgba(239,68,68,0); }
     }
+
+    /* ── Alertas proactivas ── */
+    .msg-alerta {
+        align-self: flex-start;
+        max-width: 95%;
+        border-radius: 0.85rem;
+        border-bottom-left-radius: 4px;
+        padding: 0.6rem 0.85rem;
+        font-size: 0.82rem;
+        line-height: 1.5;
+        animation: msgIn 0.18s ease;
+    }
+    .msg-alerta.critico    { background: #fef2f2; border-left: 3px solid #ef4444; color: #7f1d1d; }
+    .msg-alerta.advertencia{ background: #fffbeb; border-left: 3px solid #f59e0b; color: #78350f; }
+    .msg-alerta.info       { background: #eff6ff; border-left: 3px solid #3b82f6; color: #1e3a5f; }
+    .msg-alerta .alerta-titulo { font-weight: 700; margin-bottom: 0.3rem; }
+    .msg-alerta .alerta-item   { margin: 0.2rem 0 0 0.5rem; }
+    .msg-alerta .alerta-detalle{ font-size: 0.75rem; opacity: 0.75; margin-left: 0.9rem; }
 </style>
 
 {{-- Botón flotante --}}
@@ -811,6 +829,7 @@
     <div class="chat-messages" id="chatMessages"></div>
 
     <div class="chat-suggestions" id="chatSuggestions">
+        <button class="sug-btn" onclick="enviarSugerencia(this)">Alertas</button>
         <button class="sug-btn" onclick="enviarSugerencia(this)">Resumen general</button>
         <button class="sug-btn" onclick="enviarSugerencia(this)">Oficios pendientes</button>
         <button class="sug-btn" onclick="enviarSugerencia(this)">Próximos turnos</button>
@@ -852,7 +871,8 @@
 
         if (chatOpen && !initialized) {
             initialized = true;
-            agregarMensajeBot('¡Hola! 👋 Soy el asistente de SIPSI. Podés preguntarme sobre oficios, turnos, pacientes o informes.\n\nEscribí *ayuda* para ver todas las opciones.');
+            agregarMensajeBot('¡Hola! 👋 Soy el asistente de SIPSI.\n\nPodés preguntarme cosas como:\n• *buscar paciente García*\n• *oficio N° 123*\n• *turnos de hoy*\n• *oficios sin informe*\n\nEscribí *ayuda* para ver todas las opciones.');
+            cargarAlertas();
         }
         if (chatOpen) {
             setTimeout(() => document.getElementById('chatInput').focus(), 250);
@@ -929,6 +949,59 @@
     setTimeout(() => {
         if (!chatOpen) document.getElementById('chatFab').classList.add('has-notif');
     }, 3000);
+
+    // ── Alertas proactivas ──
+    async function cargarAlertas() {
+        try {
+            const res  = await fetch('{{ route("chatbot.alertas") }}');
+            const data = await res.json();
+
+            if (!data.alertas || data.alertas.length === 0) return;
+
+            // Pequeña pausa para que el saludo se lea primero
+            await new Promise(r => setTimeout(r, 600));
+
+            // Actualizar badge con total de alertas
+            const fab = document.getElementById('chatFab');
+            if (data.total > 0) {
+                let badge = fab.querySelector('.badge-count');
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'badge-count';
+                    badge.style.cssText = 'position:absolute;top:-4px;left:-4px;min-width:18px;height:18px;border-radius:9px;background:#ef4444;color:white;font-size:0.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--bg);';
+                    fab.appendChild(badge);
+                }
+                badge.textContent = data.total;
+            }
+
+            // Mostrar cada alerta como mensaje especial
+            for (const alerta of data.alertas) {
+                await new Promise(r => setTimeout(r, 300));
+                agregarMensajeAlerta(alerta);
+            }
+        } catch (e) {
+            // Silencioso — las alertas son opcionales
+        }
+    }
+
+    function agregarMensajeAlerta(alerta) {
+        const el = document.createElement('div');
+        el.className = `msg-alerta ${alerta.nivel}`;
+
+        let html = `<div class="alerta-titulo">${alerta.icono} ${alerta.titulo}</div>`;
+        const max = Math.min(alerta.items.length, 4);
+        for (let i = 0; i < max; i++) {
+            const item = alerta.items[i];
+            html += `<div class="alerta-item">• ${item.texto}</div>`;
+            if (item.detalle) html += `<div class="alerta-detalle">${item.detalle}</div>`;
+        }
+        if (alerta.items.length > 4) {
+            html += `<div class="alerta-detalle" style="margin-top:0.3rem">...y ${alerta.items.length - 4} más.</div>`;
+        }
+
+        el.innerHTML = html;
+        appendMsg(el);
+    }
 
     // ── Micrófono (Web Speech API) ──
     let recognition = null;
