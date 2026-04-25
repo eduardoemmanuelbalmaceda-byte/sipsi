@@ -23,6 +23,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/chatbot', [ChatbotController::class, 'responder'])->name('chatbot.responder');
     Route::get('/chatbot/alertas', [ChatbotController::class, 'alertas'])->name('chatbot.alertas');
 
+    Route::post('oficios/importar', [OficioController::class, 'importar'])->name('oficios.importar');
+    Route::get('oficios/plantilla', [OficioController::class, 'plantilla'])->name('oficios.plantilla');
     Route::resource('oficios', OficioController::class);
     Route::post('pacientes/importar', [PacienteController::class, 'importar'])->name('pacientes.importar');
     Route::get('pacientes/plantilla', [PacienteController::class, 'plantilla'])->name('pacientes.plantilla');

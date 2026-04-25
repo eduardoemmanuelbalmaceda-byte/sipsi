@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Oficio;
 use App\Models\Paciente;
 use App\Models\Juzgado;
+use App\Imports\OficiosImport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 
 class OficioController extends Controller
@@ -89,5 +91,50 @@ class OficioController extends Controller
     {
         $oficio->delete();
         return redirect()->route('oficios.index')->with('success', 'Oficio eliminado correctamente.');
+    }
+
+    public function plantilla()
+    {
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="plantilla-oficios.csv"',
+        ];
+
+        $columnas = ['numero_oficio','juzgado','dni_paciente','nombre_paciente','apellido_paciente','fecha_recepcion','medio_recepcion','tipo_pedido','observaciones'];
+        $ejemplo  = ['OF-2024-001','2° Juzgado de Familia','12345678','Juan','García','18/04/2026','email','Informe pericial',''];
+
+        $callback = function () use ($columnas, $ejemplo) {
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($out, $columnas);
+            fputcsv($out, $ejemplo);
+            fclose($out);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function importar(Request $request)
+    {
+        $request->validate([
+            'archivo' => 'required|file|mimes:xlsx,xls,csv|max:2048',
+        ]);
+
+        $import = new OficiosImport();
+        Excel::import($import, $request->file('archivo'));
+
+        $importados = $import->getImportados();
+        $omitidos   = $import->getOmitidos();
+        $errores    = $import->getErrores();
+
+        $msg = "Importación completada: $importados oficio" . ($importados !== 1 ? 's' : '') . " importado" . ($importados !== 1 ? 's' : '') . ".";
+        if ($omitidos > 0) {
+            $msg .= " $omitidos omitido" . ($omitidos !== 1 ? 's' : '') . ".";
+        }
+        if (!empty($errores)) {
+            $msg .= " Detalles: " . implode(' | ', array_slice($errores, 0, 3));
+        }
+
+        return redirect()->route('oficios.index')->with('success', $msg);
     }
 }

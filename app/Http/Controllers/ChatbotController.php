@@ -178,8 +178,8 @@ class ChatbotController extends Controller
             return $this->consultaOficios($msg);
         }
 
-        // ── Turnos ──
-        if ($this->contiene($msg, ['turno', 'turnos', 'cita', 'citas', 'agenda'])) {
+        // ── Turnos / disponibilidad ──
+        if ($this->contiene($msg, ['turno', 'turnos', 'cita', 'citas', 'agenda', 'disponib', 'libre', 'libres', 'ocupado', 'ocupados'])) {
             return $this->consultaTurnos($msg);
         }
 
@@ -346,52 +346,254 @@ class ChatbotController extends Controller
 
     private function consultaTurnos(string $msg): string
     {
-        // Hoy
-        if ($this->contiene($msg, ['hoy', 'de hoy'])) {
-            $turnos = Turno::with(['oficio.paciente', 'profesional'])
-                ->whereDate('fecha_turno', Carbon::today())
-                ->orderBy('hora')
-                ->get();
+        // ── Detectar fecha en el mensaje ──
+        $fecha = $this->extraerFecha($msg);
 
-            if ($turnos->isEmpty()) return "No hay turnos programados para hoy.";
+        // ── Detectar profesional en el mensaje ──
+        $profesional = $this->extraerProfesional($msg);
 
-            $lineas = ["📅 Turnos de hoy (" . $turnos->count() . "):"];
-            foreach ($turnos as $t) {
-                $hora = substr($t->hora, 0, 5);
-                $pac  = $t->oficio->paciente->apellido . ', ' . $t->oficio->paciente->nombre;
-                $prof = $t->profesional->apellido;
-                $lineas[] = "• {$hora}hs — $pac (Dr/a. $prof)";
-            }
-            return implode("\n", $lineas);
+        // ── Consulta de disponibilidad (fecha específica) ──
+        if ($fecha) {
+            return $this->disponibilidadFecha($fecha, $profesional, $msg);
         }
 
-        // Próximos
-        if ($this->contiene($msg, ['proximo', 'próximo', 'proximos', 'próximos', 'siguiente', 'siguientes', 'pendiente', 'pendientes'])) {
-            $turnos = Turno::with(['oficio.paciente', 'profesional'])
-                ->where('estado', 'pendiente')
-                ->where('fecha_turno', '>=', Carbon::today())
-                ->orderBy('fecha_turno')->orderBy('hora')
-                ->take(5)
-                ->get();
+        // ── Turnos de hoy ──
+        if ($this->contiene($msg, ['hoy', 'de hoy'])) {
+            return $this->disponibilidadFecha(Carbon::today(), $profesional, $msg);
+        }
 
-            if ($turnos->isEmpty()) return "No hay turnos próximos pendientes.";
+        // ── Mañana ──
+        if ($this->contiene($msg, ['mañana', 'manana'])) {
+            return $this->disponibilidadFecha(Carbon::tomorrow(), $profesional, $msg);
+        }
 
-            $lineas = ["📅 Próximos turnos:"];
-            foreach ($turnos as $t) {
-                $fecha = Carbon::parse($t->fecha_turno)->format('d/m/Y');
+        // ── Esta semana ──
+        if ($this->contiene($msg, ['semana', 'esta semana'])) {
+            return $this->turnosSemana();
+        }
+
+        // ── Próximos ──
+        if ($this->contiene($msg, ['proximo', 'próximo', 'proximos', 'próximos', 'siguiente', 'pendiente', 'pendientes'])) {
+            return $this->turnosProximos();
+        }
+
+        // ── Disponibilidad general ──
+        if ($this->contiene($msg, ['disponib', 'libre', 'libres', 'cuando', 'cuándo'])) {
+            return $this->disponibilidadGeneral();
+        }
+
+        // ── Total ──
+        $total   = Turno::count();
+        $pend    = Turno::where('estado', 'pendiente')->count();
+        $realiz  = Turno::where('estado', 'realizado')->count();
+        $ausente = Turno::where('estado', 'ausente')->count();
+        return "Total de turnos: $total\n• Pendientes: $pend\n• Realizados: $realiz\n• Ausentes: $ausente";
+    }
+
+    private function disponibilidadFecha(Carbon $fecha, ?Profesional $profesional, string $msg): string
+    {
+        $fechaStr    = $fecha->format('d/m/Y');
+        $esFuturo    = $fecha->isFuture() || $fecha->isToday();
+        $lineas      = [];
+
+        // ── A. Turnos YA asignados ese día ──
+        $query = Turno::with(['oficio.paciente', 'profesional'])
+            ->whereDate('fecha_turno', $fecha)
+            ->orderBy('hora');
+
+        if ($profesional) {
+            $query->where('profesional_id', $profesional->id);
+        }
+
+        $turnosAsignados = $query->get();
+
+        if ($turnosAsignados->isNotEmpty()) {
+            $quien = $profesional ? "Dr/a. {$profesional->apellido}" : "todos los profesionales";
+            $lineas[] = "📅 *Turnos asignados el $fechaStr* ($quien):";
+            foreach ($turnosAsignados as $t) {
                 $hora  = substr($t->hora, 0, 5);
                 $pac   = $t->oficio->paciente->apellido . ', ' . $t->oficio->paciente->nombre;
-                $lineas[] = "• $fecha {$hora}hs — $pac";
+                $prof  = $t->profesional->apellido;
+                $estado = $t->estado === 'pendiente' ? '🟡' : ($t->estado === 'realizado' ? '✅' : '❌');
+                $lineas[] = "• {$hora}hs — $pac (Dr/a. $prof) $estado";
             }
-            return implode("\n", $lineas);
+        } else {
+            $quien = $profesional ? "Dr/a. {$profesional->apellido}" : "ningún profesional";
+            $lineas[] = "📅 El $fechaStr no hay turnos asignados para $quien.";
         }
 
-        // Total
-        $total    = Turno::count();
-        $pend     = Turno::where('estado', 'pendiente')->count();
-        $realiz   = Turno::where('estado', 'realizado')->count();
-        $ausente  = Turno::where('estado', 'ausente')->count();
-        return "Total de turnos: $total\n• Pendientes: $pend\n• Realizados: $realiz\n• Ausentes: $ausente";
+        // ── B. Disponibilidad (solo si es fecha futura o hoy) ──
+        if ($esFuturo) {
+            $lineas[] = "";
+
+            $profesionales  = Profesional::orderBy('apellido')->get();
+            $hayDisponibles = false;
+            $resumen        = [];
+
+            foreach ($profesionales as $prof) {
+                $cantTurnos  = Turno::where('profesional_id', $prof->id)
+                    ->whereDate('fecha_turno', $fecha)
+                    ->count();
+                $disponibles = max(0, 8 - $cantTurnos);
+
+                $resumen[] = [
+                    'nombre'      => "Dr/a. {$prof->apellido}, {$prof->nombre}",
+                    'turnos'      => $cantTurnos,
+                    'disponibles' => $disponibles,
+                ];
+
+                if ($disponibles > 0) $hayDisponibles = true;
+            }
+
+            if ($profesionales->isEmpty()) {
+                $lineas[] = "⚠️ No hay profesionales registrados en el sistema.";
+            } elseif ($hayDisponibles) {
+                $lineas[] = "🟢 *Disponibilidad el $fechaStr:*";
+                foreach ($resumen as $r) {
+                    if ($r['disponibles'] > 0) {
+                        $lineas[] = "• {$r['nombre']} — {$r['disponibles']} lugar" . ($r['disponibles'] !== 1 ? 'es' : '') . " libre" . ($r['disponibles'] !== 1 ? 's' : '') . " ({$r['turnos']} asignado" . ($r['turnos'] !== 1 ? 's' : '') . ")";
+                    } else {
+                        $lineas[] = "• {$r['nombre']} — completo (8/8)";
+                    }
+                }
+            } else {
+                $lineas[] = "🔴 Todos los profesionales tienen la agenda completa el $fechaStr.";
+            }
+
+            // ── C. Oficios pendientes sin turno (para asignar) ──
+            $oficiosSinTurno = Oficio::with('paciente')
+                ->where('estado', 'pendiente')
+                ->whereDoesntHave('turno')
+                ->orderBy('fecha_recepcion')
+                ->take(3)
+                ->get();
+
+            if ($oficiosSinTurno->isNotEmpty()) {
+                $lineas[] = "";
+                $lineas[] = "📋 *Oficios pendientes sin turno* (podés asignarles uno el $fechaStr):";
+                foreach ($oficiosSinTurno as $o) {
+                    $url = url("/oficios/{$o->id}/turno/create");
+                    $lineas[] = "• Oficio {$o->numero_oficio} — {$o->paciente->apellido}, {$o->paciente->nombre} → $url";
+                }
+            }
+        }
+
+        return implode("\n", $lineas);
+    }
+
+    private function turnosSemana(): string
+    {
+        $inicio = Carbon::now()->startOfWeek();
+        $fin    = Carbon::now()->endOfWeek();
+
+        $turnos = Turno::with(['oficio.paciente', 'profesional'])
+            ->whereBetween('fecha_turno', [$inicio, $fin])
+            ->where('estado', 'pendiente')
+            ->orderBy('fecha_turno')
+            ->orderBy('hora')
+            ->get();
+
+        if ($turnos->isEmpty()) return "No hay turnos pendientes esta semana.";
+
+        $lineas = ["📅 *Turnos pendientes esta semana* ({$turnos->count()}):"];
+        $diaActual = '';
+        foreach ($turnos as $t) {
+            $dia = Carbon::parse($t->fecha_turno)->locale('es')->isoFormat('dddd D/MM');
+            if ($dia !== $diaActual) {
+                $lineas[] = "\n*$dia*";
+                $diaActual = $dia;
+            }
+            $hora = substr($t->hora, 0, 5);
+            $pac  = $t->oficio->paciente->apellido . ', ' . $t->oficio->paciente->nombre;
+            $lineas[] = "• {$hora}hs — $pac (Dr/a. {$t->profesional->apellido})";
+        }
+        return implode("\n", $lineas);
+    }
+
+    private function turnosProximos(): string
+    {
+        $turnos = Turno::with(['oficio.paciente', 'profesional'])
+            ->where('estado', 'pendiente')
+            ->where('fecha_turno', '>=', Carbon::today())
+            ->orderBy('fecha_turno')->orderBy('hora')
+            ->take(5)
+            ->get();
+
+        if ($turnos->isEmpty()) return "No hay turnos próximos pendientes.";
+
+        $lineas = ["📅 Próximos turnos:"];
+        foreach ($turnos as $t) {
+            $fecha = Carbon::parse($t->fecha_turno)->format('d/m/Y');
+            $hora  = substr($t->hora, 0, 5);
+            $pac   = $t->oficio->paciente->apellido . ', ' . $t->oficio->paciente->nombre;
+            $lineas[] = "• $fecha {$hora}hs — $pac (Dr/a. {$t->profesional->apellido})";
+        }
+        return implode("\n", $lineas);
+    }
+
+    private function disponibilidadGeneral(): string
+    {
+        $hoy  = Carbon::today();
+        $dias = [];
+
+        for ($i = 0; $i <= 6; $i++) {
+            $fecha = $hoy->copy()->addDays($i);
+            $cant  = Turno::whereDate('fecha_turno', $fecha)->count();
+            $dias[] = $fecha->format('d/m') . " (" . $cant . " turno" . ($cant !== 1 ? 's' : '') . ")";
+        }
+
+        $lineas = ["📅 *Turnos asignados próximos 7 días:*"];
+        foreach ($dias as $d) {
+            $lineas[] = "• $d";
+        }
+        $lineas[] = "\nPreguntame por una fecha específica, por ejemplo: *turnos del 30/04*";
+        return implode("\n", $lineas);
+    }
+
+    // ── Detectar fecha en el mensaje ──
+    private function extraerFecha(string $msg): ?Carbon
+    {
+        // Formato dd/mm/yyyy o dd/mm
+        if (preg_match('/(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?/', $msg, $m)) {
+            $dia  = (int) $m[1];
+            $mes  = (int) $m[2];
+            $anio = isset($m[3]) ? (int) $m[3] : Carbon::now()->year;
+            try {
+                return Carbon::createFromDate($anio, $mes, $dia);
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+
+        // Formato "el 25 de abril" o "25 de abril"
+        $mesesMap = [
+            'enero'=>1,'febrero'=>2,'marzo'=>3,'abril'=>4,'mayo'=>5,'junio'=>6,
+            'julio'=>7,'agosto'=>8,'septiembre'=>9,'octubre'=>10,'noviembre'=>11,'diciembre'=>12
+        ];
+        foreach ($mesesMap as $nombre => $num) {
+            if (preg_match('/(\d{1,2})\s+de\s+' . $nombre . '/', $msg, $m)) {
+                try {
+                    return Carbon::createFromDate(Carbon::now()->year, $num, (int)$m[1]);
+                } catch (\Exception $e) {
+                    return null;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // ── Detectar profesional en el mensaje ──
+    private function extraerProfesional(string $msg): ?Profesional
+    {
+        $profesionales = Profesional::all();
+        foreach ($profesionales as $p) {
+            if (str_contains($msg, strtolower($p->apellido)) ||
+                str_contains($msg, strtolower($p->nombre))) {
+                return $p;
+            }
+        }
+        return null;
     }
 
     private function consultaInformes(string $msg): string

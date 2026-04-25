@@ -811,8 +811,22 @@
     .msg-alerta .alerta-detalle{ font-size: 0.75rem; opacity: 0.75; margin-left: 0.9rem; }
 </style>
 
-{{-- Botón flotante --}}
-<button class="chat-fab" id="chatFab" onclick="toggleChat()" title="Asistente SIPSI">
+{{-- Botón flotante → abre la página del asistente --}}
+<a href="{{ route('chatbot.page') }}" class="chat-fab" id="chatFab" title="Asistente SIPSI">
+    <div class="badge-dot"></div>
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+    </svg>
+</a>
+
+<script>
+    // Mostrar notificación en el botón después de 3 segundos
+    setTimeout(() => {
+        if (!document.querySelector('.chat-fab').classList.contains('visited')) {
+            document.getElementById('chatFab').classList.add('has-notif');
+        }
+    }, 3000);
+</script>
     <div class="badge-dot"></div>
     <svg id="chatIconOpen" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
