@@ -31,6 +31,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('pacientes', PacienteController::class);
     Route::resource('juzgados', JuzgadoController::class);
     Route::get('juzgados-estadisticas', [JuzgadoController::class, 'estadisticas'])->name('juzgados.estadisticas');
+    Route::post('juzgados-estadisticas/excel', [JuzgadoController::class, 'exportarExcel'])->name('juzgados.estadisticas.excel');
+    Route::post('juzgados-estadisticas/pdf',   [JuzgadoController::class, 'exportarPdf'])->name('juzgados.estadisticas.pdf');
+    Route::post('juzgados-estadisticas/word',  [JuzgadoController::class, 'exportarWord'])->name('juzgados.estadisticas.word');
     Route::resource('profesionales', ProfesionalController::class)->parameters([
         'profesionales' => 'profesional'
     ]);
