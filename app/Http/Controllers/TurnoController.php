@@ -51,6 +51,28 @@ class TurnoController extends Controller
         return redirect()->route('oficios.show', $turno->oficio_id)->with('success', 'Turno actualizado correctamente.');
     }
 
+    public function registrarAsistencia(Request $request, Turno $turno)
+    {
+        $request->validate([
+            'asistencia'          => 'required|in:asistio,no_asistio',
+            'motivo_inasistencia' => 'nullable|string|max:500',
+        ]);
+
+        $turno->update([
+            'asistencia'          => $request->asistencia,
+            'motivo_inasistencia' => $request->motivo_inasistencia,
+            'estado'              => $request->asistencia === 'asistio' ? 'realizado' : 'ausente',
+        ]);
+
+        if ($request->asistencia === 'no_asistio') {
+            return redirect()->route('informes.createInasistencia', $turno->oficio_id)
+                ->with('success', 'Inasistencia registrada. Completá el informe.');
+        }
+
+        return redirect()->route('oficios.show', $turno->oficio_id)
+            ->with('success', 'Asistencia registrada. Podés cargar el informe clínico.');
+    }
+
     public function destroy(Turno $turno)
     {
         $oficio_id = $turno->oficio_id;

@@ -16,6 +16,12 @@ class InformeController extends Controller
         return view('informes.create', compact('oficio', 'profesionales'));
     }
 
+    public function createInasistencia(Oficio $oficio)
+    {
+        $profesionales = Profesional::orderBy('apellido')->get();
+        return view('informes.create-inasistencia', compact('oficio', 'profesionales'));
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -23,6 +29,7 @@ class InformeController extends Controller
             'profesional_id' => 'required|exists:profesionales,id',
             'contenido'      => 'required|string',
             'fecha_informe'  => 'required|date',
+            'tipo'           => 'required|in:clinico,inasistencia',
         ]);
 
         Informe::create($request->all());
@@ -74,6 +81,17 @@ class InformeController extends Controller
 
         return redirect()->route('oficios.show', $informe->oficio_id)
             ->with('success', 'Informe marcado como enviado al juzgado.');
+    }
+
+    public function marcarEnviadoDireccion(Informe $informe)
+    {
+        $informe->update([
+            'enviado_direccion'      => true,
+            'fecha_envio_direccion'  => now()->toDateString(),
+        ]);
+
+        return redirect()->route('oficios.show', $informe->oficio_id)
+            ->with('success', 'Informe marcado como enviado a Dirección.');
     }
 
     public function destroy(Informe $informe)

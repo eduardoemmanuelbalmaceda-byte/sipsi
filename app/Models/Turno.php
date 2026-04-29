@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Turno extends Model
 {
-    protected $fillable = ['oficio_id', 'profesional_id', 'fecha_turno', 'hora', 'estado'];
+    protected $fillable = ['oficio_id', 'profesional_id', 'fecha_turno', 'hora', 'estado', 'asistencia', 'motivo_inasistencia'];
 
     public function oficio()
     {

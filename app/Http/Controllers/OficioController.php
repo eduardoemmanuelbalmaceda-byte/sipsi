@@ -93,6 +93,29 @@ class OficioController extends Controller
         return redirect()->route('oficios.index')->with('success', 'Oficio eliminado correctamente.');
     }
 
+    public function registrarNotificacion(Request $request, Oficio $oficio)
+    {
+        $request->validate([
+            'notificado_por' => 'required|in:direccion,juzgado,conflicto',
+        ]);
+
+        $oficio->update(['notificado_por' => $request->notificado_por]);
+
+        return redirect()->route('oficios.show', $oficio)
+            ->with('success', 'Notificación registrada correctamente.');
+    }
+
+    public function confirmarJuzgado(Oficio $oficio)
+    {
+        $oficio->update([
+            'confirmacion_juzgado'        => true,
+            'fecha_confirmacion_juzgado'  => now()->toDateString(),
+        ]);
+
+        return redirect()->route('oficios.show', $oficio)
+            ->with('success', 'Confirmación del juzgado registrada.');
+    }
+
     public function plantilla()
     {
         $headers = [

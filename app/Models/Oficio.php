@@ -9,7 +9,8 @@ class Oficio extends Model
     protected $fillable = [
         'numero_oficio', 'juzgado_id', 'paciente_id',
         'fecha_recepcion', 'fecha_vencimiento', 'medio_recepcion', 'tipo_pedido',
-        'estado', 'observaciones'
+        'estado', 'observaciones',
+        'notificado_por', 'confirmacion_juzgado', 'fecha_confirmacion_juzgado',
     ];
 
     public function juzgado()

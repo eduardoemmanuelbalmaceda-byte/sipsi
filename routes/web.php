@@ -43,14 +43,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('turnos/{turno}/edit', [TurnoController::class, 'edit'])->name('turnos.edit');
     Route::put('turnos/{turno}', [TurnoController::class, 'update'])->name('turnos.update');
     Route::delete('turnos/{turno}', [TurnoController::class, 'destroy'])->name('turnos.destroy');
+    Route::patch('turnos/{turno}/asistencia', [TurnoController::class, 'registrarAsistencia'])->name('turnos.asistencia');
 
     Route::get('oficios/{oficio}/informe/create', [InformeController::class, 'create'])->name('informes.create');
+    Route::get('oficios/{oficio}/informe/inasistencia', [InformeController::class, 'createInasistencia'])->name('informes.createInasistencia');
     Route::post('informes', [InformeController::class, 'store'])->name('informes.store');
     Route::get('informes/{informe}/edit', [InformeController::class, 'edit'])->name('informes.edit');
     Route::put('informes/{informe}', [InformeController::class, 'update'])->name('informes.update');
     Route::delete('informes/{informe}', [InformeController::class, 'destroy'])->name('informes.destroy');
     Route::get('informes/{informe}/pdf', [InformeController::class, 'pdf'])->name('informes.pdf');
     Route::patch('informes/{informe}/marcar-enviado', [InformeController::class, 'marcarEnviado'])->name('informes.marcarEnviado');
+    Route::patch('informes/{informe}/marcar-enviado-direccion', [InformeController::class, 'marcarEnviadoDireccion'])->name('informes.marcarEnviadoDireccion');
+
+    Route::patch('oficios/{oficio}/notificacion', [OficioController::class, 'registrarNotificacion'])->name('oficios.notificacion');
+    Route::patch('oficios/{oficio}/confirmar-juzgado', [OficioController::class, 'confirmarJuzgado'])->name('oficios.confirmarJuzgado');
 });
 
 require __DIR__.'/auth.php';
