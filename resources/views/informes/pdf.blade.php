@@ -10,14 +10,14 @@
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 11px;
-            color: #1a1a2e;
+            color: #2e251aff;
             background: #fff;
             padding: 0;
         }
 
         /* ── Encabezado ── */
         .header {
-            background: #2c3e6b;
+            background: #6b4b2cff;
             color: white;
             padding: 22px 32px 18px;
             margin-bottom: 0;

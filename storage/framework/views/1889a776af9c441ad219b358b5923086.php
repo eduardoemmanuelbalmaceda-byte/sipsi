@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIPSI — {{ $title ?? 'Sistema' }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <title>SIPSI — <?php echo e($title ?? 'Sistema'); ?></title>
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
     <style>
         /* ══════════════════════════════════════
@@ -440,7 +440,7 @@
         [data-theme="dark"] .form-label        { color: var(--text-soft) !important; }
         [data-theme="dark"] strong             { color: var(--text) !important; }
     </style>
-    {{-- Aplicar tema antes de render para evitar flash --}}
+    
     <script>
         (function() {
             const t = localStorage.getItem('sipsi-theme') || 'light';
@@ -453,14 +453,14 @@
 <div class="watermark">SIPSI</div>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-{{-- ── Botón toggle sidebar (desktop) ── --}}
+
 <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebarDesktop()" title="Ocultar/mostrar menú">
     <svg id="toggleIcon" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
     </svg>
 </button>
 
-{{-- ── Sidebar ── --}}
+
 <aside class="sidebar" id="sidebar">
 
     <div class="sidebar-logo">
@@ -473,7 +473,7 @@
             <div class="brand-name">SIPSI</div>
             <div class="brand-sub">Psiquiatría Hospitalaria</div>
         </div>
-        {{-- Toggle desktop --}}
+        
         <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" id="themeBtn">
             <svg id="iconSun" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
@@ -487,35 +487,35 @@
     <nav class="sidebar-nav">
         <div class="nav-label">Gestión clínica</div>
 
-        <a href="{{ route('chatbot.page') }}" class="sidebar-link {{ request()->routeIs('chatbot.page') ? 'active' : '' }}">
+        <a href="<?php echo e(route('chatbot.page')); ?>" class="sidebar-link <?php echo e(request()->routeIs('chatbot.page') ? 'active' : ''); ?>">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
             </svg>
             <span class="link-text">Asistente</span>
         </a>
 
-        <a href="{{ route('juzgados.index') }}" class="sidebar-link {{ request()->routeIs('juzgados.index') || request()->routeIs('juzgados.create') || request()->routeIs('juzgados.edit') ? 'active' : '' }}">
+        <a href="<?php echo e(route('juzgados.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('juzgados.index') || request()->routeIs('juzgados.create') || request()->routeIs('juzgados.edit') ? 'active' : ''); ?>">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
             </svg>
             <span class="link-text">Juzgados</span>
         </a>
 
-        <a href="{{ route('pacientes.index') }}" class="sidebar-link {{ request()->routeIs('pacientes.*') ? 'active' : '' }}">
+        <a href="<?php echo e(route('pacientes.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('pacientes.*') ? 'active' : ''); ?>">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
             <span class="link-text">Pacientes</span>
         </a>
 
-        <a href="{{ route('oficios.index') }}" class="sidebar-link {{ request()->routeIs('oficios.*') ? 'active' : '' }}">
+        <a href="<?php echo e(route('oficios.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('oficios.*') ? 'active' : ''); ?>">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
             <span class="link-text">Oficios</span>
         </a>
 
-        <a href="{{ route('profesionales.index') }}" class="sidebar-link {{ request()->routeIs('profesionales.*') ? 'active' : '' }}">
+        <a href="<?php echo e(route('profesionales.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('profesionales.*') ? 'active' : ''); ?>">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
@@ -524,7 +524,7 @@
 
         <div class="nav-label" style="margin-top:0.5rem;">Informes</div>
 
-        <a href="{{ route('juzgados.estadisticas') }}" class="sidebar-link {{ request()->routeIs('juzgados.estadisticas') ? 'active' : '' }}">
+        <a href="<?php echo e(route('juzgados.estadisticas')); ?>" class="sidebar-link <?php echo e(request()->routeIs('juzgados.estadisticas') ? 'active' : ''); ?>">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
@@ -532,7 +532,7 @@
             <span class="link-text">Est. Juzgados</span>
         </a>
 
-        <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+        <a href="<?php echo e(route('dashboard')); ?>" class="sidebar-link <?php echo e(request()->routeIs('dashboard') ? 'active' : ''); ?>">
             <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
@@ -542,14 +542,14 @@
 
     <div class="sidebar-footer">
         <div class="user-card">
-            <div class="user-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
+            <div class="user-avatar"><?php echo e(strtoupper(substr(auth()->user()->name, 0, 1))); ?></div>
             <div>
-                <div class="user-name">{{ auth()->user()->name }}</div>
-                <div class="user-email">{{ auth()->user()->email }}</div>
+                <div class="user-name"><?php echo e(auth()->user()->name); ?></div>
+                <div class="user-email"><?php echo e(auth()->user()->email); ?></div>
             </div>
         </div>
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
+        <form method="POST" action="<?php echo e(route('logout')); ?>">
+            <?php echo csrf_field(); ?>
             <button type="submit" class="btn-logout">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -560,10 +560,10 @@
     </div>
 </aside>
 
-{{-- ── Main ── --}}
+
 <div class="main-wrapper">
 
-    {{-- Topbar mobile --}}
+    
     <div class="topbar">
         <div style="display:flex;align-items:center;gap:0.6rem;">
             <div class="logo-icon" style="width:30px;height:30px;border-radius:8px;">
@@ -591,14 +591,14 @@
     </div>
 
     <div class="page-content">
-        @if(session('success'))
-            <div class="alert alert-success mb-3">{{ session('success') }}</div>
-        @endif
-        @yield('content')
+        <?php if(session('success')): ?>
+            <div class="alert alert-success mb-3"><?php echo e(session('success')); ?></div>
+        <?php endif; ?>
+        <?php echo $__env->yieldContent('content'); ?>
     </div>
 </div>
 
-{{-- ── Modal confirmación eliminar ── --}}
+
 <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-box">
         <div class="confirm-icon">
@@ -688,9 +688,7 @@
     applyTheme(localStorage.getItem('sipsi-theme') || 'light');
 </script>
 
-{{-- ══════════════════════════════════════
-     CHATBOT PANEL LATERAL
-══════════════════════════════════════ --}}
+
 <style>
     /* ── Botón flotante ── */
     .chat-fab {
@@ -883,8 +881,8 @@
     .msg-alerta .alerta-detalle{ font-size: 0.75rem; opacity: 0.75; margin-left: 0.9rem; }
 </style>
 
-{{-- Botón flotante ── abre panel lateral --}}
-@if(!request()->routeIs('chatbot.page'))
+
+<?php if(!request()->routeIs('chatbot.page')): ?>
 <button class="chat-fab" id="chatFab" onclick="toggleChatPanel()" title="Asistente SIPSI">
     <div class="badge-dot"></div>
     <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -892,7 +890,7 @@
     </svg>
 </button>
 
-{{-- Panel lateral del chat --}}
+
 <div id="chatPanel" style="
     position:fixed; top:0; right:-420px; width:400px; height:100vh;
     background:var(--surface); border-left:1px solid var(--border);
@@ -900,7 +898,7 @@
     z-index:9999; display:flex; flex-direction:column;
     transition:right 0.3s cubic-bezier(.4,0,.2,1);
 ">
-    {{-- Header --}}
+    
     <div style="padding:1rem 1.1rem; background:linear-gradient(135deg,var(--sidebar-bg),var(--sidebar-bg2)); display:flex; align-items:center; gap:0.65rem; flex-shrink:0;">
         <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--mint),var(--green));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="18" height="18" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
@@ -920,10 +918,10 @@
         </button>
     </div>
 
-    {{-- Mensajes --}}
+    
     <div id="chatMessages" style="flex:1;overflow-y:auto;padding:0.85rem;display:flex;flex-direction:column;gap:0.6rem;scroll-behavior:smooth;"></div>
 
-    {{-- Sugerencias --}}
+    
     <div id="chatSuggestions" style="padding:0 0.85rem 0.5rem;display:flex;flex-wrap:wrap;gap:0.4rem;">
         <button class="sug-btn" onclick="enviarSugerencia(this)">Alertas</button>
         <button class="sug-btn" onclick="enviarSugerencia(this)">Resumen general</button>
@@ -932,7 +930,7 @@
         <button class="sug-btn" onclick="enviarSugerencia(this)">Informes sin enviar</button>
     </div>
 
-    {{-- Input --}}
+    
     <div style="padding:0.65rem 0.85rem 0.85rem;display:flex;gap:0.5rem;align-items:center;border-top:1px solid var(--border);flex-shrink:0;">
         <input type="text" id="chatInput" placeholder="Escribí tu consulta..."
             onkeydown="if(event.key==='Enter') enviarMensaje()"
@@ -946,7 +944,7 @@
     </div>
 </div>
 
-{{-- Overlay --}}
+
 <div id="chatOverlay" onclick="toggleChatPanel()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9998;"></div>
 
 <style>
@@ -1010,9 +1008,9 @@
         agregarMensajeUsuario(texto);
         const typingEl = agregarTyping();
         try {
-            const res  = await fetch('{{ route("chatbot.responder") }}', {
+            const res  = await fetch('<?php echo e(route("chatbot.responder")); ?>', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>' },
                 body: JSON.stringify({ mensaje: texto })
             });
             const data = await res.json();
@@ -1049,7 +1047,7 @@
 
     async function cargarAlertas() {
         try {
-            const res  = await fetch('{{ route("chatbot.alertas") }}');
+            const res  = await fetch('<?php echo e(route("chatbot.alertas")); ?>');
             const data = await res.json();
             if (!data.alertas || data.alertas.length === 0) return;
             await new Promise(r => setTimeout(r, 600));
@@ -1073,7 +1071,8 @@
     setTimeout(() => { if (!panelOpen) document.getElementById('chatFab').classList.add('has-notif'); }, 3000);
 })();
 </script>
-@endif
+<?php endif; ?>
 
 </body>
 </html>
+<?php /**PATH C:\Users\KINGS OF PC\Herd\sipsi\resources\views/layouts/app.blade.php ENDPATH**/ ?>
