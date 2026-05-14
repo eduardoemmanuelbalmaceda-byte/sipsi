@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\DbHelper;
 use App\Models\Juzgado;
 use App\Models\Oficio;
 use App\Exports\EstadisticasJuzgadosExport;
@@ -98,7 +99,7 @@ class JuzgadoController extends Controller
 
         $totalGeneral = $datos->sum('total');
 
-        $aniosDisponibles = Oficio::selectRaw("YEAR(fecha_recepcion) as anio")
+        $aniosDisponibles = Oficio::selectRaw(DbHelper::formatoAnio('fecha_recepcion') . " as anio")
             ->groupBy('anio')
             ->orderByDesc('anio')
             ->pluck('anio');

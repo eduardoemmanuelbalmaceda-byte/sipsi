@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\DbHelper;
 use App\Models\Oficio;
 use App\Models\Paciente;
 use App\Models\Profesional;
@@ -149,7 +150,7 @@ class DashboardController extends Controller
 
         // ── Oficios por mes (últimos 6 meses) ──
         $oficiosPorMes = Oficio::select(
-                DB::raw("DATE_FORMAT(fecha_recepcion, '%Y-%m') as mes"),
+                DB::raw(DbHelper::formatoMes('fecha_recepcion') . " as mes"),
                 DB::raw('count(*) as total')
             )
             ->where('fecha_recepcion', '>=', Carbon::now()->subMonths(5)->startOfMonth())
