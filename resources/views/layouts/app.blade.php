@@ -175,8 +175,8 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 0.8rem; font-weight: 700; color: white; flex-shrink: 0;
         }
-        .user-name  { font-size: 0.82rem; font-weight: 600; color: #fff; line-height: 1.2; }
-        .user-email { font-size: 0.68rem; color: rgba(255,255,255,0.28); }
+        .user-name  { font-size: 0.82rem; font-weight: 600; color: #fff; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+        .user-email { font-size: 0.68rem; color: rgba(255,255,255,0.28); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
         .btn-logout {
             display: flex; align-items: center; gap: 0.6rem;
             width: 100%; padding: 0.55rem 0.85rem;
