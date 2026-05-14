@@ -98,7 +98,7 @@ class JuzgadoController extends Controller
 
         $totalGeneral = $datos->sum('total');
 
-        $aniosDisponibles = Oficio::selectRaw("strftime('%Y', fecha_recepcion) as anio")
+        $aniosDisponibles = Oficio::selectRaw("YEAR(fecha_recepcion) as anio")
             ->groupBy('anio')
             ->orderByDesc('anio')
             ->pluck('anio');
