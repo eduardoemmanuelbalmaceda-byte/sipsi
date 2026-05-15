@@ -220,7 +220,12 @@
             </svg>
         </div>
         <div class="chatbot-header-info">
-            <div class="chatbot-header-name">Asistente SIPSI</div>
+            <div class="chatbot-header-name">
+                Asistente SIPSI
+                @if(env('GROQ_API_KEY'))
+                    <span style="font-size: 0.7rem; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 8px; border-radius: 10px; margin-left: 6px; font-weight: 600;">🤖 IA</span>
+                @endif
+            </div>
             <div class="chatbot-header-status">
                 <div class="status-dot-lg"></div>
                 En línea — listo para ayudarte
@@ -387,7 +392,11 @@
     };
 
     // ── Inicio ──
-    addBot('¡Hola, {{ auth()->user()->name }}! 👋 Soy el asistente de SIPSI.\n\nPodés preguntarme sobre oficios, turnos, pacientes, informes o profesionales.\n\nEscribí *ayuda* para ver todas las opciones.');
+    @if(env('GROQ_API_KEY'))
+        addBot('¡Hola, {{ auth()->user()->name }}! 👋 Soy el asistente de SIPSI con *IA activada* 🤖\n\nPodés hacerme cualquier pregunta en lenguaje natural sobre oficios, turnos, pacientes, informes o profesionales.\n\nEscribí *ayuda* para ver comandos rápidos o simplemente preguntame lo que necesites.');
+    @else
+        addBot('¡Hola, {{ auth()->user()->name }}! 👋 Soy el asistente de SIPSI.\n\nPodés preguntarme sobre oficios, turnos, pacientes, informes o profesionales.\n\nEscribí *ayuda* para ver todas las opciones.\n\n💡 *Tip:* Activá la IA para consultas más naturales (ver CONFIGURACION_IA.md)');
+    @endif
     cargarAlertas();
     document.getElementById('cbInput').focus();
 })();

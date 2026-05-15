@@ -1,58 +1,121 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SIPSI - Sistema de Información Psiquiátrica Judicial
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema de gestión para oficios judiciales, pacientes, turnos e informes psiquiátricos.
 
-## About Laravel
+## 🚀 Características principales
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- 📋 **Gestión de Oficios Judiciales:** Control completo de oficios recibidos de juzgados
+- 👥 **Registro de Pacientes:** Base de datos de pacientes con historial
+- 📅 **Sistema de Turnos:** Agenda de citas con profesionales
+- 📄 **Generación de Informes:** Creación y envío de informes a juzgados
+- 👨‍⚕️ **Gestión de Profesionales:** Registro de psiquiatras y médicos
+- 🤖 **Chatbot con IA:** Asistente virtual inteligente (Groq AI - 100% gratuito)
+- ⚡ **Chatbot con Acciones:** Asignar turnos, registrar asistencias, y más desde el chat
+- 📊 **Dashboard con Estadísticas:** Visualización de métricas y alertas
+- 📱 **Notificaciones WhatsApp:** Integración con WhatsApp Business API
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🤖 Chatbot con Inteligencia Artificial
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+El sistema incluye un chatbot que puede **responder consultas** y **realizar acciones** usando **Groq AI** (completamente gratuito).
 
-## Learning Laravel
+### Consultas:
+- "¿Qué es un oficio judicial?"
+- "Dame consejos para organizar mejor los turnos"
+- "¿Cuál es la situación actual?"
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Acciones:
+- "Asignar turno para el oficio 1239 con el Dr. Gomez para mañana a las 10hs"
+- "Registrar asistencia del turno 45"
+- "Marcar informe 12 como enviado"
+- "Cancelar turno 46"
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Configuración rápida (5 minutos):
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+1. Obtené tu API key gratis en: https://console.groq.com/keys
+2. Agregala al archivo `.env`:
+   ```env
+   GROQ_API_KEY=tu_clave_aqui
+   ```
+3. Reiniciá el servidor
 
-## Agentic Development
+📖 **Guías completas:** 
+- [CONFIGURACION_IA.md](CONFIGURACION_IA.md) - Configuración de IA
+- [CHATBOT_ACCIONES.md](CHATBOT_ACCIONES.md) - Guía de acciones
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## 📦 Instalación
 
 ```bash
-composer require laravel/boost --dev
+# Clonar el repositorio
+git clone [url-del-repo]
+cd sipsi
 
-php artisan boost:install
+# Instalar dependencias
+composer install
+npm install
+
+# Configurar entorno
+cp .env.example .env
+php artisan key:generate
+
+# Configurar base de datos (SQLite por defecto)
+touch database/database.sqlite
+php artisan migrate
+
+# Compilar assets
+npm run build
+
+# Iniciar servidor
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## 🔧 Configuración
 
-## Contributing
+### Base de datos
+El sistema usa SQLite por defecto. Para usar MySQL/PostgreSQL, editá el `.env`:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=sipsi
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-## Code of Conduct
+### Chatbot con IA (Opcional pero recomendado)
+```env
+GROQ_API_KEY=tu_clave_de_groq
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### WhatsApp (Opcional)
+```env
+WHATSAPP_API_URL=https://api.whatsapp.com
+WHATSAPP_TOKEN=tu_token
+```
 
-## Security Vulnerabilities
+## 📚 Documentación adicional
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- [MANUAL_USUARIO.md](MANUAL_USUARIO.md) - Guía de uso del sistema
+- [MANUAL_PROCESOS.md](MANUAL_PROCESOS.md) - Procesos y flujos de trabajo
+- [CONFIGURACION_IA.md](CONFIGURACION_IA.md) - Configuración del chatbot con IA
+- [CHATBOT_ACCIONES.md](CHATBOT_ACCIONES.md) - Guía de acciones del chatbot
+- [EJEMPLOS_CONSULTAS_IA.md](EJEMPLOS_CONSULTAS_IA.md) - Ejemplos de consultas
+- [README_WHATSAPP.md](README_WHATSAPP.md) - Integración con WhatsApp
 
-## License
+## 🛠️ Tecnologías
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Backend:** Laravel 13 (PHP 8.3)
+- **Frontend:** Blade Templates + Alpine.js
+- **Base de datos:** SQLite / MySQL / PostgreSQL
+- **IA:** Groq API (Llama 3.3 70B)
+- **Exportación:** Excel, PDF, Word
+- **Estilos:** CSS personalizado con variables
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia MIT.
+
+---
+
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+

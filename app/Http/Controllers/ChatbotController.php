@@ -8,11 +8,22 @@ use App\Models\Turno;
 use App\Models\Informe;
 use App\Models\Profesional;
 use App\Models\Juzgado;
+use App\Services\GroqAIService;
+use App\Services\ChatbotActionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ChatbotController extends Controller
 {
+    protected GroqAIService $groqService;
+    protected ChatbotActionService $actionService;
+
+    public function __construct(GroqAIService $groqService, ChatbotActionService $actionService)
+    {
+        $this->groqService = $groqService;
+        $this->actionService = $actionService;
+    }
+
     public function alertas()
     {
         $hoy     = Carbon::today();
@@ -149,6 +160,15 @@ class ChatbotController extends Controller
 
     private function procesar(string $msg): string
     {
+        // ── PRIMERO: Intentar ejecutar una acción ──
+        $resultadoAccion = $this->actionService->ejecutarAccion($msg);
+        
+        if ($resultadoAccion['tipo'] !== 'no_accion') {
+            return $resultadoAccion['mensaje'];
+        }
+        
+        // ── SEGUNDO: Procesar con reglas predefinidas ──
+        
         // ── Saludos ──
         if ($this->contiene($msg, ['hola', 'buenas', 'buen dia', 'buenos dias', 'buenas tardes', 'buenas noches', 'hey'])) {
             $hora = (int) Carbon::now()->format('H');
@@ -160,7 +180,23 @@ class ChatbotController extends Controller
 
         // ── Ayuda ──
         if ($this->contiene($msg, ['ayuda', 'que podes', 'qué podés', 'que sabes', 'comandos', 'opciones', 'como funciona'])) {
-            return "Puedo responder preguntas como:\n• ¿Cuántos oficios pendientes hay?\n• ¿Cuáles son los próximos turnos?\n• ¿Hay informes sin enviar?\n• ¿Cuántos pacientes hay?\n• ¿Cuántos profesionales hay?\n• Resumen general\n• Oficios de hoy\n• Turnos de hoy";
+            return "Puedo responder preguntas y *realizar acciones*:\n\n" .
+                   "*📊 CONSULTAS:*\n" .
+                   "• ¿Cuántos oficios pendientes hay?\n" .
+                   "• ¿Cuáles son los próximos turnos?\n" .
+                   "• Resumen general / Alertas\n\n" .
+                   "*⚡ ACCIONES - TURNOS:*\n" .
+                   "• Asignar turno para el oficio 1239 con el Dr. Gomez para mañana a las 10hs\n" .
+                   "• Cancelar turno 45\n" .
+                   "• Modificar turno 45 para el 20/05 a las 15hs\n" .
+                   "• Registrar asistencia del turno 45\n" .
+                   "• Registrar inasistencia del turno 45\n\n" .
+                   "*⚡ ACCIONES - OFICIOS:*\n" .
+                   "• Cerrar oficio 1239\n" .
+                   "• Registrar notificación del oficio 1239\n\n" .
+                   "*⚡ ACCIONES - INFORMES:*\n" .
+                   "• Marcar informe 12 como enviado\n\n" .
+                   "💡 También podés hacer preguntas en lenguaje natural si tenés la IA activada.";
         }
 
         // ── Resumen general ──
@@ -205,8 +241,8 @@ class ChatbotController extends Controller
             return "Hay $total juzgado" . ($total !== 1 ? 's' : '') . " registrado" . ($total !== 1 ? 's' : '') . " en el sistema.";
         }
 
-        // ── Fallback ──
-        return "No entendí esa consulta 🤔 Escribí *ayuda* para ver qué puedo responder.";
+        // ── Fallback con IA ──
+        return $this->responderConIA($msg);
     }
 
     // ── Consultas específicas ──
@@ -639,5 +675,48 @@ class ChatbotController extends Controller
             if (str_contains($texto, $p)) return true;
         }
         return false;
+    }
+
+    /**
+     * Responde usando IA cuando no se entiende la consulta
+     */
+    private function responderConIA(string $msg): string
+    {
+        // Si la IA no está configurada, mostrar mensaje de ayuda
+        if (!$this->groqService->estaConfigurado()) {
+            return "No entendí esa consulta 🤔 Escribí *ayuda* para ver qué puedo responder.\n\n💡 *Tip:* Podés activar la IA para consultas más naturales. Pedile al administrador que configure GROQ_API_KEY en el archivo .env";
+        }
+
+        // Obtener contexto del sistema para la IA
+        $contexto = $this->obtenerContextoSistema();
+
+        // Consultar a la IA
+        return $this->groqService->interpretar($msg, $contexto);
+    }
+
+    /**
+     * Obtiene estadísticas del sistema para dar contexto a la IA
+     */
+    private function obtenerContextoSistema(): array
+    {
+        $hoy = Carbon::today();
+
+        return [
+            'Oficios totales' => Oficio::count(),
+            'Oficios pendientes' => Oficio::where('estado', 'pendiente')->count(),
+            'Oficios en curso' => Oficio::where('estado', 'en_curso')->count(),
+            'Oficios cerrados' => Oficio::where('estado', 'cerrado')->count(),
+            'Oficios vencidos' => Oficio::whereNotNull('fecha_vencimiento')
+                ->where('fecha_vencimiento', '<', $hoy)
+                ->whereIn('estado', ['pendiente', 'en_curso'])
+                ->count(),
+            'Pacientes registrados' => Paciente::count(),
+            'Profesionales activos' => Profesional::count(),
+            'Juzgados registrados' => Juzgado::count(),
+            'Turnos pendientes hoy' => Turno::whereDate('fecha_turno', $hoy)
+                ->where('estado', 'pendiente')
+                ->count(),
+            'Informes sin enviar' => Informe::where('enviado_juzgado', false)->count(),
+        ];
     }
 }
