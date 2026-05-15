@@ -1,7 +1,7 @@
 # Manual de Usuario — SIPSI
 ## Sistema Integral de Psiquiatría Hospitalaria
 **Hospital Dr. César Aguilar — San Juan**
-**Versión 1.0 — Mayo 2026**
+**Versión 1.1 — Mayo 2026**
 
 ---
 
@@ -41,6 +41,7 @@ El sistema tiene un **sidebar** (barra lateral izquierda) con las siguientes sec
 | **Est. Juzgados** | Estadísticas por juzgado |
 | **Profesionales** | Registro de profesionales |
 | **Estadísticas** | Dashboard general |
+| **Ayuda** | Manuales de usuario y procesos |
 
 En la parte superior del sidebar hay un botón para cambiar entre **modo claro y oscuro**.
 
@@ -53,6 +54,7 @@ Al ingresar al sistema podés ver el resumen general:
 - **Tarjetas KPI**: Total de oficios, pendientes, en curso, cerrados, pacientes y profesionales
 - **Gráfico de barras**: Oficios recibidos por mes (últimos 6 meses)
 - **Gráfico de torta**: Distribución de estados
+- **Panel de alertas**: Oficios vencidos, por vencer, turnos del día, sin turno asignado e informes sin enviar
 - **Próximos turnos**: Los 5 turnos pendientes más cercanos
 - **Oficios recientes**: Los últimos 5 oficios registrados
 - **Informes sin enviar**: Informes que aún no fueron enviados al juzgado
@@ -86,13 +88,22 @@ Hacé clic en **Ver** en el listado. Vas a ver:
 - Informe cargado (si tiene)
 - Botones de acción según el estado
 
-### 5.4 Importar oficios desde Excel
+### 5.4 Registrar notificación
+Desde el detalle del oficio podés registrar quién fue notificado:
+- **Dirección**: La dirección del hospital fue notificada
+- **Juzgado**: El juzgado fue notificado directamente
+- **Conflicto**: Se registró un conflicto en la notificación
+
+### 5.5 Confirmar recepción del juzgado
+Una vez enviado el informe, podés registrar que el juzgado confirmó la recepción haciendo clic en **Confirmar recepción del juzgado**. El sistema registra la fecha automáticamente.
+
+### 5.6 Importar oficios desde Excel
 1. En el listado de oficios, hacé clic en **Importar Excel**
 2. Descargá la **plantilla de ejemplo** si es la primera vez
 3. Completá el archivo con las columnas: `numero_oficio`, `juzgado`, `dni_paciente`, `nombre_paciente`, `apellido_paciente`, `fecha_recepcion`, `medio_recepcion`, `tipo_pedido`
 4. Subí el archivo y hacé clic en **Importar**
 
-### 5.5 Estados de un oficio
+### 5.7 Estados de un oficio
 
 | Estado | Significado |
 |--------|-------------|
@@ -114,6 +125,8 @@ Hacé clic en **Ver** en el listado. Vas a ver:
 1. Entrá al detalle del oficio
 2. En la card del turno, registrá si el paciente **asistió** o **no asistió**
 3. Si no asistió, podés ingresar el motivo
+4. Si asistió → se habilita cargar el informe clínico
+5. Si no asistió → el sistema redirige automáticamente al informe de inasistencia
 
 ### 6.3 Editar o eliminar un turno
 - **Editar**: Cambiá fecha, hora, profesional o estado
@@ -124,16 +137,16 @@ Hacé clic en **Ver** en el listado. Vas a ver:
 ## 7. Gestión de Informes
 
 ### 7.1 Cargar un informe clínico
-1. El oficio debe tener turno asignado
+1. El oficio debe tener turno asignado y asistencia registrada
 2. En la card **Informe**, hacé clic en **+ Cargar informe**
 3. Completá: profesional, fecha, contenido del informe
 4. Hacé clic en **Guardar** — el oficio pasa a estado **Cerrado**
 
 ### 7.2 Informe por inasistencia
-Si el paciente no asistió al turno, el sistema te redirige automáticamente a cargar un informe de inasistencia.
+Si el paciente no asistió al turno, el sistema te redirige automáticamente a cargar un informe de inasistencia con los datos del motivo.
 
 ### 7.3 Descargar informe en PDF
-En la card del informe, hacé clic en el botón verde **PDF**. Se descarga el archivo con todos los datos del oficio, paciente y contenido del informe.
+En la card del informe, hacé clic en el botón verde **PDF**. Se descarga el archivo con todos los datos del oficio, paciente y contenido del informe en formato A4.
 
 ### 7.4 Marcar como enviado al juzgado
 1. En la card del informe, hacé clic en **Marcar como enviado**
@@ -167,6 +180,12 @@ Hacé clic en **Ver** en el listado para ver todos los oficios asociados a ese p
 - Desde **Est. Juzgados** podés ver estadísticas de oficios por juzgado, filtradas por año y mes
 - Podés exportar las estadísticas en **Excel**, **PDF** o **Word**
 
+### Exportar estadísticas
+1. Andá a **Est. Juzgados**
+2. Seleccioná el **año** y el **rango de meses**
+3. Hacé clic en **Filtrar**
+4. Usá los botones **Excel**, **PDF** o **Word** para descargar el reporte
+
 ---
 
 ## 10. Gestión de Profesionales
@@ -192,6 +211,7 @@ El asistente está disponible en todas las páginas (botón flotante morado) y t
 | `próximos turnos` | Los 5 turnos pendientes más cercanos |
 | `informes sin enviar` | Informes pendientes de envío |
 | `cuántos pacientes hay` | Total de pacientes |
+| `disponibilidad mañana` | Profesionales disponibles y lugares libres |
 | `ayuda` | Lista completa de comandos |
 
 ### Micrófono
@@ -199,13 +219,23 @@ Hacé clic en el ícono del micrófono para dictar tu consulta por voz (requiere
 
 ---
 
-## 12. Modo oscuro
+## 12. Centro de Ayuda
+
+Desde **Ayuda** en el sidebar podés acceder a:
+- **Manual de Usuario**: Esta guía paso a paso
+- **Manual de Procesos**: Documentación técnica del sistema
+
+Cada manual tiene un botón **Imprimir** para generar una copia en papel.
+
+---
+
+## 13. Modo oscuro
 
 Hacé clic en el ícono de luna/sol en la parte superior del sidebar para cambiar entre modo claro y oscuro. La preferencia se guarda automáticamente.
 
 ---
 
-## 13. Preguntas frecuentes
+## 14. Preguntas frecuentes
 
 **¿Qué pasa si elimino un turno?**
 El oficio vuelve a estado Pendiente. El informe (si existe) no se elimina.
@@ -218,3 +248,6 @@ No. El número de oficio es único en el sistema.
 
 **¿Qué significa "Pendiente de envío" en el PDF?**
 Que el informe fue generado pero todavía no se marcó como enviado al juzgado. Usá el botón "Marcar como enviado" en el detalle del oficio.
+
+**¿Cómo sé si un oficio está por vencer?**
+El dashboard y el asistente muestran alertas automáticas para oficios con fecha de vencimiento próxima (dentro de 7 días) o ya vencidos.

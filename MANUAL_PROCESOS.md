@@ -1,13 +1,13 @@
 # Manual de Procesos — SIPSI
 ## Sistema Integral de Psiquiatría Hospitalaria
 **Hospital Dr. César Aguilar — San Juan**
-**Versión 1.0 — Mayo 2026**
+**Versión 1.1 — Mayo 2026**
 
 ---
 
 ## 1. Descripción del sistema
 
-SIPSI gestiona el flujo completo de oficios judiciales recibidos por el Servicio de Psiquiatría del Hospital Dr. César Aguilar. El sistema digitaliza y centraliza el proceso que antes se manejaba en planillas físicas y Excel, permitiendo trazabilidad completa desde la recepción del oficio hasta el envío del informe al juzgado.
+SIPSI gestiona el flujo completo de oficios judiciales recibidos por el Servicio de Psiquiatría del Hospital Dr. César Aguilar. El sistema digitaliza y centraliza el proceso que antes se manejaba en planillas físicas y Excel, permitiendo trazabilidad completa desde la recepción del oficio hasta la confirmación de recepción por parte del juzgado.
 
 ### Tecnologías utilizadas
 - **Backend**: Laravel 13 (PHP 8.3)
@@ -15,8 +15,9 @@ SIPSI gestiona el flujo completo de oficios judiciales recibidos por el Servicio
 - **Frontend**: Blade + Bootstrap + CSS personalizado
 - **Servidor local**: Laravel Herd (NGINX + PHP-FPM)
 - **Autenticación**: Laravel Breeze
-- **PDF**: barryvdh/laravel-dompdf
-- **Excel**: maatwebsite/excel
+- **PDF**: barryvdh/laravel-dompdf v3.1
+- **Excel**: maatwebsite/excel v3.1
+- **Markdown**: erusev/parsedown v1.8
 
 ---
 
@@ -32,17 +33,17 @@ SECRETARÍA — Registra el oficio en SIPSI
    │
    │ Asigna turno al profesional
    ▼
-PROFESIONAL — Realiza la evaluación
-   │           (estado: EN CURSO)
+PACIENTE — Asiste o no asiste al turno
+   │         (estado: EN CURSO)
    │
-   │ Redacta y carga el informe
+   │ Profesional redacta y carga el informe
    ▼
 INFORME GENERADO — Se descarga PDF
    │                (estado: CERRADO)
    │
-   │ Se envía al juzgado
-   ▼
-CASO CERRADO — Se marca como enviado
+   ├──► Se envía al juzgado → Marcar como enviado
+   ├──► Se envía a Dirección → Marcar como enviado a Dirección
+   └──► Juzgado confirma recepción → Confirmar recepción
 ```
 
 ---
@@ -150,7 +151,24 @@ CASO CERRADO — Se marca como enviado
 
 ---
 
-### 3.6 Seguimiento de vencimientos
+### 3.6 Notificación y confirmación del juzgado
+
+**Responsable**: Secretaría
+
+**Registrar notificación**:
+1. Desde el detalle del oficio, registrar quién fue notificado:
+   - **Dirección**: La dirección del hospital fue notificada
+   - **Juzgado**: El juzgado fue notificado directamente
+   - **Conflicto**: Se registró un conflicto en la notificación
+
+**Confirmar recepción del juzgado**:
+1. Una vez que el juzgado confirma haber recibido el informe
+2. Hacé clic en **Confirmar recepción del juzgado**
+3. El sistema registra la fecha de confirmación automáticamente
+
+---
+
+### 3.7 Seguimiento de vencimientos
 
 **Responsable**: Coordinador / Secretaría
 
@@ -162,6 +180,7 @@ El sistema monitorea automáticamente:
 | 🟡 Por vencer | `fecha_vencimiento` dentro de 7 días |
 | ⏳ Sin turno | Pendiente hace más de 15 días sin turno |
 | 📄 Informe sin enviar | Informe con más de 7 días sin enviar al juzgado |
+| 📅 Turnos hoy | Turnos pendientes para el día actual |
 
 Estas alertas aparecen en:
 - El **Dashboard** (panel de alertas)
@@ -169,7 +188,7 @@ Estas alertas aparecen en:
 
 ---
 
-### 3.7 Generación de estadísticas
+### 3.8 Generación de estadísticas
 
 **Responsable**: Dirección / Coordinador
 
@@ -184,15 +203,15 @@ Estas alertas aparecen en:
 
 ### Tablas principales
 
-| Tabla | Descripción |
-|-------|-------------|
-| `users` | Usuarios del sistema (autenticación) |
-| `profesionales` | Profesionales del servicio |
-| `pacientes` | Pacientes evaluados |
-| `juzgados` | Juzgados remitentes |
-| `oficios` | Oficios judiciales recibidos |
-| `turnos` | Turnos asignados a cada oficio |
-| `informes` | Informes periciales generados |
+| Tabla | Descripción | Campos clave |
+|-------|-------------|--------------|
+| `users` | Usuarios del sistema | name, email, password |
+| `profesionales` | Profesionales del servicio | user_id, nombre, apellido, especialidad, rol |
+| `pacientes` | Pacientes evaluados | nombre, apellido, dni, fecha_nacimiento, telefono, direccion |
+| `juzgados` | Juzgados remitentes | nombre, ciudad, contacto |
+| `oficios` | Oficios judiciales | numero_oficio, juzgado_id, paciente_id, fecha_recepcion, medio_recepcion, tipo_pedido, estado, fecha_vencimiento, notificado_por, confirmacion_juzgado |
+| `turnos` | Turnos asignados | oficio_id, profesional_id, fecha_turno, hora, estado, asistencia, motivo_inasistencia |
+| `informes` | Informes periciales | oficio_id, profesional_id, tipo, contenido, fecha_informe, enviado_juzgado, enviado_direccion, fecha_envio, fecha_envio_direccion |
 
 ### Relaciones
 
@@ -214,13 +233,13 @@ PENDIENTE ──► EN CURSO ──► CERRADO
 
 ## 5. Roles de usuario
 
-| Rol | Permisos |
-|-----|----------|
-| **Profesional** | Ver y gestionar sus propios turnos e informes |
-| **Admin** | Acceso completo al sistema |
-| **Dirección** | Acceso a estadísticas y reportes |
+| Rol | Descripción |
+|-----|-------------|
+| **Profesional** | Profesional del servicio de psiquiatría |
+| **Admin** | Administrador con acceso completo |
+| **Dirección** | Dirección del hospital |
 
-> Nota: Los roles están definidos en la base de datos pero el control de acceso por rol está pendiente de implementación completa.
+> Nota: Los roles están definidos en la base de datos. El control de acceso por rol está pendiente de implementación completa.
 
 ---
 
@@ -240,7 +259,17 @@ PENDIENTE ──► EN CURSO ──► CERRADO
 
 ---
 
-## 7. Mantenimiento del sistema
+## 7. Módulo de Ayuda
+
+El sistema incluye un centro de ayuda accesible desde el sidebar (**Ayuda**) que muestra:
+- **Manual de Usuario**: Guía paso a paso para usuarios finales
+- **Manual de Procesos**: Documentación técnica del sistema
+
+Los manuales se almacenan como archivos Markdown en la raíz del proyecto (`MANUAL_USUARIO.md` y `MANUAL_PROCESOS.md`) y se renderizan en HTML usando la librería `erusev/parsedown`. Cada manual tiene opción de impresión.
+
+---
+
+## 8. Mantenimiento del sistema
 
 ### Actualizar el código desde GitHub
 ```bash
@@ -259,16 +288,22 @@ Desde HeidiSQL → seleccionar `sispsi` → Herramientas → Exportar SQL → gu
 - PHP: 8.3
 - Base de datos: MySQL en `127.0.0.1:3306`, base `sispsi`
 
+### Compatibilidad de base de datos
+El sistema usa el helper `App\Helpers\DbHelper` para detectar automáticamente si la BD es MySQL o SQLite y usar las funciones de fecha correctas en cada caso. Esto permite que el proyecto funcione en ambos entornos sin cambios de código.
+
 ---
 
-## 8. Glosario
+## 9. Glosario
 
 | Término | Definición |
 |---------|------------|
 | **Oficio judicial** | Documento enviado por un juzgado solicitando una evaluación psiquiátrica o psicológica |
 | **Informe pericial** | Documento técnico elaborado por el profesional como respuesta al oficio |
+| **Informe de inasistencia** | Constancia de que el paciente no se presentó al turno asignado |
 | **Turno** | Cita asignada al paciente para la evaluación |
 | **Estado pendiente** | Oficio recibido sin turno asignado |
 | **Estado en curso** | Oficio con turno asignado, evaluación en proceso |
 | **Estado cerrado** | Oficio con informe cargado |
 | **Inasistencia** | Cuando el paciente no se presenta al turno asignado |
+| **Notificación** | Registro de a quién se notificó sobre el oficio |
+| **Confirmación del juzgado** | Registro de que el juzgado confirmó haber recibido el informe |
