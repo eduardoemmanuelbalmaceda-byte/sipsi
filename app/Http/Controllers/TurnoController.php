@@ -5,10 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Turno;
 use App\Models\Oficio;
 use App\Models\Profesional;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 
 class TurnoController extends Controller
 {
+    protected $whatsapp;
+
+    public function __construct(WhatsAppService $whatsapp)
+    {
+        $this->whatsapp = $whatsapp;
+    }
+
     public function create(Oficio $oficio)
     {
         $profesionales = Profesional::orderBy('apellido')->get();
@@ -24,9 +32,17 @@ class TurnoController extends Controller
             'hora'           => 'required',
         ]);
 
-        Turno::create($request->all());
+        $turno = Turno::create($request->all());
 
         Oficio::find($request->oficio_id)->update(['estado' => 'en_curso']);
+
+        // Si quiere enviar WhatsApp, abrir enlace
+        if ($request->has('enviar_whatsapp') && $request->enviar_whatsapp) {
+            $enlace = $this->whatsapp->generarEnlaceWhatsApp($turno);
+            if ($enlace) {
+                return redirect($enlace);
+            }
+        }
 
         return redirect()->route('oficios.show', $request->oficio_id)->with('success', 'Turno asignado correctamente.');
     }
@@ -48,7 +64,26 @@ class TurnoController extends Controller
 
         $turno->update($request->all());
 
+        // Si quiere enviar WhatsApp, abrir enlace
+        if ($request->has('enviar_whatsapp') && $request->enviar_whatsapp) {
+            $enlace = $this->whatsapp->generarEnlaceWhatsApp($turno);
+            if ($enlace) {
+                return redirect($enlace);
+            }
+        }
+
         return redirect()->route('oficios.show', $turno->oficio_id)->with('success', 'Turno actualizado correctamente.');
+    }
+
+    public function enviarWhatsApp(Turno $turno)
+    {
+        $enlace = $this->whatsapp->generarEnlaceWhatsApp($turno);
+        
+        if ($enlace) {
+            return redirect($enlace);
+        }
+        
+        return back()->with('error', 'El paciente no tiene teléfono registrado.');
     }
 
     public function registrarAsistencia(Request $request, Turno $turno)
