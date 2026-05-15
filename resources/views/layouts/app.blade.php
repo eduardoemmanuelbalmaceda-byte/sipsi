@@ -90,6 +90,7 @@
             padding: 1.4rem 1.25rem 1rem;
             border-bottom: 1px solid rgba(255,255,255,0.06);
             display: flex; align-items: center; gap: 0.7rem;
+            transition: all 0.3s ease;
         }
         .logo-icon {
             width: 38px; height: 38px; border-radius: 10px;
@@ -136,8 +137,25 @@
         .sidebar.collapsed .btn-logout-text,
         .sidebar.collapsed .theme-toggle { opacity: 0; width: 0; overflow: hidden; white-space: nowrap; }
         .sidebar.collapsed .sidebar-link { justify-content: center; padding: 0.65rem 0; gap: 0; }
-        .sidebar.collapsed .sidebar-logo { justify-content: center; padding: 1rem 0; gap: 0; }
-        .sidebar.collapsed .sidebar-logo > div:not(.logo-icon) { width: 0; overflow: hidden; }
+        .sidebar.collapsed .sidebar-logo { 
+            justify-content: center; 
+            padding: 1rem 0; 
+            gap: 0;
+        }
+        .sidebar.collapsed .sidebar-logo > div { 
+            flex: 0 !important;
+            width: 0; 
+            overflow: hidden; 
+            opacity: 0;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar.collapsed .sidebar-logo .logo-icon { 
+            flex: 0 0 auto !important;
+            width: 38px !important;
+            opacity: 1 !important;
+            overflow: visible !important;
+        }
         .sidebar.collapsed .user-card    { justify-content: center; gap: 0; padding: 0.6rem 0; }
         .sidebar.collapsed .user-card > div:last-child { width: 0; overflow: hidden; }
         .sidebar.collapsed .btn-logout   { justify-content: center; padding: 0.55rem 0; }
