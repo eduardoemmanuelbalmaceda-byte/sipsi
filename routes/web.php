@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\AyudaController;
 use App\Http\Controllers\OficioController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\JuzgadoController;
@@ -20,6 +21,8 @@ Route::middleware(['auth'])->group(function () {
     })->name('chatbot.page');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/ayuda', [AyudaController::class, 'index'])->name('ayuda.index');
+    Route::get('/ayuda/{tipo}', [AyudaController::class, 'manual'])->name('ayuda.manual')->where('tipo', 'usuario|procesos');
     Route::post('/chatbot', [ChatbotController::class, 'responder'])->name('chatbot.responder');
     Route::get('/chatbot/alertas', [ChatbotController::class, 'alertas'])->name('chatbot.alertas');
 
